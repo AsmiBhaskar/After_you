@@ -1,16 +1,16 @@
-# ✨ AfterYou: A Poetic Vision ✨
+#  AfterYou: A Poetic Vision 
 
-## 🕵️ "After You, I Still Speak"
+## "After You"
 
 At its core, *AfterYou* carries the poetic belief that:
 
 > **“Our words should outlive our silence.”**
 
-It is a **love letter to legacy** — a way for people to whisper into the future, even after they’re gone.
+It is a **love letter and a legacy** — a way for people to whisper into the future, even after they’re gone.
 
 ---
 
-## 💬 Poetic Motifs Embedded in the Project
+##  Poetic Motifs Embedded in the Project
 
 ### 1. Memory as Immortality
 
@@ -40,7 +40,7 @@ It is a **love letter to legacy** — a way for people to whisper into the futur
 
 ---
 
-## 📈 If This Were a Poem...
+## If This Were a Poem...
 
 > **"I wrote this for the wind to carry,
 > When my voice is ash and air.
@@ -49,11 +49,5 @@ It is a **love letter to legacy** — a way for people to whisper into the futur
 
 ---
 
-## 🖋️ Contribute
-
-If you'd like to contribute to this vision, enhance its poetry, or help build the platform, you're welcome to explore the repo and be part of this legacy of remembrance.
-
----
-
 **With love,
-The AfterYou Team**
+Asmi Bhaskar**
