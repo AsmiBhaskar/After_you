@@ -76,6 +76,45 @@
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ failed_count }}</h4>
+                        <p class="mb-0">Failed ❌</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h6>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'legacy:create_message' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Message
+                    </a>
+                    <a href="{% url 'legacy:test_email' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-envelope"></i> Test Email
+                    </a>
+                    <button type="button" class="btn btn-outline-info" onclick="refreshPage()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Messages List -->
@@ -128,11 +167,38 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             {% if message.status == 'created' %}
-                                            <button type="button" class="btn btn-outline-danger" 
-                                                    onclick="confirmDelete('{{ message.id }}', '{{ message.title }}')" 
-                                                    title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                                <button type="button" class="btn btn-outline-success" 
+                                                        onclick="scheduleMessage('{{ message.id }}', '{{ message.title }}')" 
+                                                        title="Schedule">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-warning" 
+                                                        onclick="sendMessageNow('{{ message.id }}', '{{ message.title }}')" 
+                                                        title="Send Now">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        onclick="confirmDelete('{{ message.id }}', '{{ message.title }}')" 
+                                                        title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            {% elif message.status == 'failed' %}
+                                                <button type="button" class="btn btn-outline-warning" 
+                                                        onclick="sendMessageNow('{{ message.id }}', '{{ message.title }}')" 
+                                                        title="Retry Send">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        onclick="confirmDelete('{{ message.id }}', '{{ message.title }}')" 
+                                                        title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            {% elif message.status == 'scheduled' %}
+                                                <button type="button" class="btn btn-outline-warning" 
+                                                        onclick="sendMessageNow('{{ message.id }}', '{{ message.title }}')" 
+                                                        title="Send Now">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -216,5 +282,76 @@ function confirmDelete(messageId, messageTitle) {
     document.getElementById('deleteForm').action = `/message/${messageId}/delete/`;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
+
+function scheduleMessage(messageId, messageTitle) {
+    if (confirm(`Schedule "${messageTitle}" for delivery?`)) {
+        fetch(`/message/${messageId}/schedule/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.error);
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred while scheduling the message.');
+        });
+    }
+}
+
+function sendMessageNow(messageId, messageTitle) {
+    if (confirm(`Send "${messageTitle}" immediately?`)) {
+        fetch(`/message/${messageId}/send-now/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.error);
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred while sending the message.');
+        });
+    }
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+function refreshPage() {
+    location.reload();
+}
 </script>
+
+<!-- Add CSRF token for AJAX requests -->
+{% csrf_token %}
 {% endblock %}

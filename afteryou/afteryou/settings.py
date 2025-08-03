@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_rq',  # Django-RQ for background tasks
     'legacy',
     'accounts',
 ]
@@ -135,3 +136,41 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # For production
+
+# SMTP Configuration (uncomment for production)
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-app-password'
+
+# Default from email
+DEFAULT_FROM_EMAIL = 'AfterYou Legacy <noreply@afteryou.com>'
+EMAIL_SUBJECT_PREFIX = '[AfterYou] '
+
+# Django-RQ Configuration
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    },
+    'email': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    }
+}
+
+# Legacy Message Settings
+LEGACY_MESSAGE_SETTINGS = {
+    'DELIVERY_CHECK_INTERVAL': 300,  # Check every 5 minutes
+    'MAX_RETRY_ATTEMPTS': 3,
+    'RETRY_DELAY': 3600,  # 1 hour between retries
+}
