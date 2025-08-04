@@ -1,0 +1,21 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
+from . import api_views
+
+urlpatterns = [
+    # Authentication endpoints
+    path('api/auth/login/', api_views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/register/', api_views.register_user, name='api_register'),
+    path('api/auth/profile/', api_views.user_profile, name='api_user_profile'),
+    
+    # Messages endpoints
+    path('api/messages/', api_views.LegacyMessageListCreateView.as_view(), name='api_messages_list'),
+    path('api/messages/<str:id>/', api_views.LegacyMessageDetailView.as_view(), name='api_message_detail'),
+    
+    # Dashboard & Actions
+    path('api/dashboard/stats/', api_views.dashboard_stats, name='api_dashboard_stats'),
+    path('api/messages/send-test/', api_views.send_test_message, name='api_send_test'),
+    path('api/messages/schedule/', api_views.schedule_message_api, name='api_schedule_message'),
+]

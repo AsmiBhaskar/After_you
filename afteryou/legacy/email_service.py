@@ -1,172 +1,382 @@
 """
-Email service for sending legacy messages
+Email service for legacy message delivery
+Handles email composition, sending, and delivery tracking
 """
 import logging
-from datetime import datetime
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timedelta
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.core.mail import send_mail, EmailMultiAlternatives
 from .models import LegacyMessage
 
 logger = logging.getLogger(__name__)
 
 class LegacyEmailService:
-    """Service for handling legacy message email delivery"""
+    """
+    Service class for handling legacy message email delivery
+    """
     
     @staticmethod
     def send_legacy_message(message_id):
         """
-        Send a legacy message via email
+        Send a single legacy message via email
         
         Args:
-            message_id (str): The MongoDB ObjectId of the message
+            message_id (str): MongoDB ObjectId of the message to send
             
         Returns:
             bool: True if successful, False otherwise
         """
         try:
-            # Get the message from MongoDB
+            # Get the message from database
             message = LegacyMessage.objects.get(id=message_id)
             
-            # Check if message is ready for delivery
-            if message.status != 'scheduled':
-                logger.warning(f"Message {message_id} is not scheduled for delivery. Status: {message.status}")
-                return False
-            
-            # Check if delivery time has arrived
-            current_time = timezone.now()
-            if message.delivery_date > current_time:
-                logger.info(f"Message {message_id} delivery time has not arrived yet. Scheduled for: {message.delivery_date}")
-                return False
-            
-            # Prepare email context
-            context = {
-                'message': message,
-                'current_time': current_time,
-            }
-            
-            # Render email templates
-            html_content = render_to_string('emails/legacy_message.html', context)
-            text_content = render_to_string('emails/legacy_message.txt', context)
-            
-            # Create email subject
+            # Prepare email content
             subject = f"Legacy Message: {message.title}"
             
-            # Create email
+            # Create HTML email content
+            html_content = LegacyEmailService._render_email_template(message)
+            
+            # Create plain text fallback
+            text_content = f"""
+{message.title}
+
+{message.content}
+
+---
+This message was scheduled to be delivered on {message.delivery_date.strftime('%B %d, %Y at %I:%M %p')}.
+Sent via AfterYou Legacy Messages.
+            """.strip()
+            
+            # Send email using Django's email system
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=text_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[message.recipient_email],
-                headers={
-                    'X-AfterYou-Message-ID': str(message.id),
-                    'X-AfterYou-Created': message.created_at.isoformat(),
-                    'X-AfterYou-Scheduled': message.delivery_date.isoformat(),
-                }
+                to=[message.recipient_email]
             )
-            
-            # Attach HTML version
             email.attach_alternative(html_content, "text/html")
             
-            # Send email
-            email.send()
+            # Send the email
+            sent = email.send()
             
-            # Update message status
-            message.status = 'sent'
-            message.sent_at = current_time
-            message.save()
-            
-            logger.info(f"Successfully sent legacy message {message_id} to {message.recipient_email}")
-            return True
-            
+            if sent:
+                # Update message status
+                message.status = 'sent'
+                message.sent_at = timezone.now()
+                message.save()
+                
+                logger.info(f"Successfully sent legacy message {message_id} to {message.recipient_email}")
+                return True
+            else:
+                # Mark as failed
+                message.status = 'failed'
+                message.save()
+                
+                logger.error(f"Failed to send legacy message {message_id}")
+                return False
+                
         except LegacyMessage.DoesNotExist:
-            logger.error(f"Legacy message {message_id} not found")
+            logger.error(f"Message {message_id} not found")
             return False
         except Exception as e:
-            logger.error(f"Failed to send legacy message {message_id}: {str(e)}")
+            logger.error(f"Error sending message {message_id}: {str(e)}")
             
-            # Update message status to failed
+            # Try to update message status to failed
             try:
                 message = LegacyMessage.objects.get(id=message_id)
                 message.status = 'failed'
                 message.save()
             except:
                 pass
-            
+                
             return False
     
     @staticmethod
-    def schedule_message_for_delivery(message_id):
+    def _render_email_template(message):
         """
-        Schedule a message for delivery
+        Render HTML email template for legacy message
         
         Args:
-            message_id (str): The MongoDB ObjectId of the message
+            message (LegacyMessage): The message object
             
         Returns:
-            bool: True if scheduled successfully
+            str: Rendered HTML content
         """
         try:
-            message = LegacyMessage.objects.get(id=message_id)
-            
-            if message.status != 'created':
-                logger.warning(f"Message {message_id} cannot be scheduled. Current status: {message.status}")
-                return False
-            
-            # Update status to scheduled
-            message.status = 'scheduled'
-            message.save()
-            
-            logger.info(f"Message {message_id} scheduled for delivery on {message.delivery_date}")
-            return True
-            
-        except LegacyMessage.DoesNotExist:
-            logger.error(f"Message {message_id} not found")
-            return False
-        except Exception as e:
-            logger.error(f"Failed to schedule message {message_id}: {str(e)}")
-            return False
-    
-    @staticmethod
-    def get_due_messages():
-        """
-        Get all messages that are due for delivery
+            # Try to use a template if it exists
+            return render_to_string('legacy/email_template.html', {
+                'message': message,
+                'delivery_date': message.delivery_date,
+                'sent_date': timezone.now(),
+            })
+        except:
+            # Fallback to simple HTML if template doesn't exist
+            return f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Legacy Message: {message.title}</title>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }}
+        .container {{
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            border-bottom: 3px solid #6B73FF;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }}
+        .title {{
+            color: #6B73FF;
+            font-size: 28px;
+            margin: 0;
+            font-weight: 600;
+        }}
+        .subtitle {{
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+        }}
+        .content {{
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+        }}
+        .footer {{
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }}
+        .date-info {{
+            background: #f0f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #6B73FF;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">{message.title}</h1>
+            <p class="subtitle">A Legacy Message from AfterYou</p>
+        </div>
         
-        Returns:
-            QuerySet: Messages ready for delivery
-        """
-        current_time = timezone.now()
-        return LegacyMessage.objects.filter(
-            status='scheduled',
-            delivery_date__lte=current_time
-        )
+        <div class="content">
+{message.content}
+        </div>
+        
+        <div class="date-info">
+            <strong>Scheduled for delivery:</strong> {message.delivery_date.strftime('%B %d, %Y at %I:%M %p')}<br>
+            <strong>Delivered on:</strong> {timezone.now().strftime('%B %d, %Y at %I:%M %p')}
+        </div>
+        
+        <div class="footer">
+            <p>This message was created and scheduled through AfterYou Legacy Messages.<br>
+            A service for connecting present moments with future hearts.</p>
+        </div>
+    </div>
+</body>
+</html>
+            """
     
     @staticmethod
     def process_pending_deliveries():
         """
-        Process all pending message deliveries
+        Process all messages that are due for delivery
         
         Returns:
-            dict: Summary of delivery results
+            dict: Results summary with counts
         """
-        due_messages = LegacyEmailService.get_due_messages()
+        logger.info("Processing pending message deliveries...")
         
-        results = {
-            'total_processed': 0,
-            'successful': 0,
-            'failed': 0,
-            'message_ids': []
-        }
-        
-        for message in due_messages:
-            results['total_processed'] += 1
-            results['message_ids'].append(str(message.id))
+        try:
+            # Get all scheduled messages that are due for delivery
+            current_time = timezone.now()
+            due_messages = LegacyMessage.objects.filter(
+                status='scheduled',
+                delivery_date__lte=current_time
+            )
             
-            if LegacyEmailService.send_legacy_message(str(message.id)):
-                results['successful'] += 1
-            else:
-                results['failed'] += 1
+            total_processed = 0
+            successful = 0
+            failed = 0
+            
+            for message in due_messages:
+                total_processed += 1
+                
+                if LegacyEmailService.send_legacy_message(str(message.id)):
+                    successful += 1
+                else:
+                    failed += 1
+            
+            results = {
+                'total_processed': total_processed,
+                'successful': successful,
+                'failed': failed,
+                'timestamp': current_time
+            }
+            
+            logger.info(f"Delivery batch completed: {successful} successful, {failed} failed")
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error processing pending deliveries: {str(e)}")
+            return {
+                'error': str(e),
+                'total_processed': 0,
+                'successful': 0,
+                'failed': 0
+            }
+    
+    @staticmethod
+    def schedule_message_for_delivery(message_id):
+        """
+        Mark a message as scheduled for delivery
         
-        logger.info(f"Delivery batch completed: {results}")
-        return results
+        Args:
+            message_id (str): MongoDB ObjectId of the message
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            message = LegacyMessage.objects.get(id=message_id)
+            
+            # Check if delivery date is in the future
+            if message.delivery_date > timezone.now():
+                message.status = 'scheduled'
+                message.save()
+                
+                logger.info(f"Message {message_id} scheduled for delivery at {message.delivery_date}")
+                return True
+            else:
+                # If delivery date has passed, send immediately
+                logger.info(f"Message {message_id} delivery date has passed, sending immediately")
+                return LegacyEmailService.send_legacy_message(message_id)
+                
+        except LegacyMessage.DoesNotExist:
+            logger.error(f"Message {message_id} not found for scheduling")
+            return False
+        except Exception as e:
+            logger.error(f"Error scheduling message {message_id}: {str(e)}")
+            return False
+    
+    @staticmethod
+    def send_test_message(message_id):
+        """
+        Send a test version of the message immediately
+        
+        Args:
+            message_id (str): MongoDB ObjectId of the message
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            message = LegacyMessage.objects.get(id=message_id)
+            
+            # Create a copy for testing but mark it clearly as a test
+            subject = f"[TEST] Legacy Message: {message.title}"
+            
+            html_content = LegacyEmailService._render_email_template(message)
+            # Add test notice to HTML content
+            html_content = html_content.replace(
+                '<div class="container">',
+                '<div class="container"><div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 20px; border-radius: 4px; color: #856404;"><strong>🧪 TEST MESSAGE</strong> - This is a test delivery of your legacy message.</div>'
+            )
+            
+            text_content = f"""
+🧪 TEST MESSAGE - This is a test delivery of your legacy message.
+
+{message.title}
+
+{message.content}
+
+---
+This message was scheduled to be delivered on {message.delivery_date.strftime('%B %d, %Y at %I:%M %p')}.
+TEST sent via AfterYou Legacy Messages.
+            """.strip()
+            
+            # Send test email
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[message.recipient_email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            
+            sent = email.send()
+            
+            if sent:
+                logger.info(f"Successfully sent test message {message_id} to {message.recipient_email}")
+                return True
+            else:
+                logger.error(f"Failed to send test message {message_id}")
+                return False
+                
+        except LegacyMessage.DoesNotExist:
+            logger.error(f"Message {message_id} not found for test sending")
+            return False
+        except Exception as e:
+            logger.error(f"Error sending test message {message_id}: {str(e)}")
+            return False
+    
+    @staticmethod
+    def get_delivery_stats():
+        """
+        Get statistics about message deliveries
+        
+        Returns:
+            dict: Delivery statistics
+        """
+        try:
+            total_messages = LegacyMessage.objects.count()
+            scheduled_messages = LegacyMessage.objects.filter(status='scheduled').count()
+            sent_messages = LegacyMessage.objects.filter(status='sent').count()
+            failed_messages = LegacyMessage.objects.filter(status='failed').count()
+            created_messages = LegacyMessage.objects.filter(status='created').count()
+            
+            return {
+                'total': total_messages,
+                'scheduled': scheduled_messages,
+                'sent': sent_messages,
+                'failed': failed_messages,
+                'created': created_messages,
+                'delivery_rate': (sent_messages / total_messages * 100) if total_messages > 0 else 0
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting delivery stats: {str(e)}")
+            return {
+                'error': str(e),
+                'total': 0,
+                'scheduled': 0,
+                'sent': 0,
+                'failed': 0,
+                'created': 0,
+                'delivery_rate': 0
+            }
