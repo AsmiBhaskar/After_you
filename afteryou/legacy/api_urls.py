@@ -16,6 +16,8 @@ urlpatterns = [
     
     # Dashboard & Actions
     path('api/dashboard/stats/', api_views.dashboard_stats, name='api_dashboard_stats'),
+    path('api/system/status/', api_views.system_status, name='api_system_status'),
+    path('api/jobs/<str:job_id>/status/', api_views.job_status, name='api_job_status'),
     path('api/messages/send-test/', api_views.send_test_message, name='api_send_test'),
     path('api/messages/schedule/', api_views.schedule_message_api, name='api_schedule_message'),
 ]

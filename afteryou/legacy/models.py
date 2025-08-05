@@ -11,14 +11,18 @@ class LegacyMessage(Document):
     
     # Status tracking
     STATUS_CHOICES = (
-        ('created', 'Created ✅'),
-        ('scheduled', 'Scheduled ⏰'),
-        ('sent', 'Sent 📤'),
-        ('failed', 'Failed ❌'),
+        ('created', 'Created'),
+        ('scheduled', 'Scheduled'),
+        ('pending', 'Pending'),
+        ('sent', 'Sent'),
+        ('failed', 'Failed'),
     )
     status = StringField(max_length=10, choices=STATUS_CHOICES, default='created')
     created_at = DateTimeField(default=datetime.utcnow)
     sent_at = DateTimeField()
+    
+    # Background job tracking
+    job_id = StringField()  # RQ job ID for tracking background tasks
     
     # Meta configuration
     meta = {

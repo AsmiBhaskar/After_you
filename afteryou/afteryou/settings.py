@@ -200,16 +200,38 @@ EMAIL_SUBJECT_PREFIX = '[AfterYou] '
 # Django-RQ Configuration
 RQ_QUEUES = {
     'default': {
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',
         'PORT': 6379,
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
+        'CONNECTION_KWARGS': {
+            'health_check_interval': 30,
+            'socket_connect_timeout': 10,
+            'socket_timeout': 10,
+            'retry_on_timeout': True,
+            'max_connections': 50,
+        },
+        'CONNECTION_POOL_KWARGS': {
+            'max_connections': 50,
+            'retry_on_timeout': True,
+        },
     },
     'email': {
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',
         'PORT': 6379,
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
+        'CONNECTION_KWARGS': {
+            'health_check_interval': 30,
+            'socket_connect_timeout': 10,
+            'socket_timeout': 10,
+            'retry_on_timeout': True,
+            'max_connections': 50,
+        },
+        'CONNECTION_POOL_KWARGS': {
+            'max_connections': 50,
+            'retry_on_timeout': True,
+        },
     }
 }
 

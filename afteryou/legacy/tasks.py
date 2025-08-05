@@ -6,10 +6,98 @@ from datetime import timedelta
 from django.utils import timezone
 from django_rq import job
 import django_rq
+import redis
+from rq import Queue, Worker
 from .email_service import LegacyEmailService
 from .models import LegacyMessage
 
 logger = logging.getLogger(__name__)
+
+def get_redis_connection():
+    """Get Redis connection for status checking"""
+    try:
+        return django_rq.get_connection('default')
+    except Exception as e:
+        logger.error(f"Failed to get Redis connection: {e}")
+        return None
+
+def get_redis_status():
+    """Get Redis connection status and queue information"""
+    try:
+        conn = get_redis_connection()
+        if not conn:
+            return {
+                'connected': False,
+                'mode': 'fallback',
+                'queue_info': {'queued_jobs': 0, 'failed_jobs': 0, 'workers': 0}
+            }
+        
+        # Test connection
+        conn.ping()
+        
+        # Get queue information
+        default_queue = Queue('default', connection=conn)
+        email_queue = Queue('email', connection=conn)
+        
+        workers = Worker.all(connection=conn)
+        
+        queue_info = {
+            'queued_jobs': len(default_queue) + len(email_queue),
+            'failed_jobs': len(default_queue.failed_job_registry) + len(email_queue.failed_job_registry),
+            'workers': len(workers),
+            'default_queue_size': len(default_queue),
+            'email_queue_size': len(email_queue)
+        }
+        
+        return {
+            'connected': True,
+            'mode': 'redis',
+            'queue_info': queue_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Redis status check failed: {e}")
+        return {
+            'connected': False,
+            'mode': 'fallback',
+            'queue_info': {'queued_jobs': 0, 'failed_jobs': 0, 'workers': 0},
+            'error': str(e)
+        }
+
+def get_job_status(job_id):
+    """Get status of a specific RQ job"""
+    try:
+        conn = get_redis_connection()
+        if not conn:
+            return {'status': 'unknown', 'message': 'Redis not available'}
+        
+        from rq.job import Job
+        try:
+            job = Job.fetch(job_id, connection=conn)
+            return {
+                'job_id': job_id,
+                'status': job.get_status(),
+                'created_at': job.created_at.isoformat() if job.created_at else None,
+                'enqueued_at': job.enqueued_at.isoformat() if job.enqueued_at else None,
+                'started_at': job.started_at.isoformat() if job.started_at else None,
+                'ended_at': job.ended_at.isoformat() if job.ended_at else None,
+                'result': str(job.result) if job.result else None,
+                'exc_info': job.exc_info if job.exc_info else None
+            }
+        except Exception as e:
+            return {
+                'job_id': job_id,
+                'status': 'not_found',
+                'message': f'Job not found: {str(e)}'
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to get job status for {job_id}: {e}")
+        return {
+            'job_id': job_id,
+            'status': 'error',
+            'message': str(e)
+        }
 
 @job('email')
 def process_delivery_queue():

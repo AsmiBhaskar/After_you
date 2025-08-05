@@ -18,9 +18,9 @@ class LegacyMessageSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'content', 'recipient_email', 
             'delivery_date', 'status', 'created_at', 'sent_at',
-            'user_email'
+            'user_email', 'job_id'
         ]
-        read_only_fields = ['id', 'created_at', 'sent_at', 'user_email']
+        read_only_fields = ['id', 'created_at', 'sent_at', 'user_email', 'job_id']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

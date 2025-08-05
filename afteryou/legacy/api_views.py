@@ -6,11 +6,27 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+import logging
 from .models import LegacyMessage
 from .serializers import LegacyMessageSerializer, LegacyMessageCreateSerializer, UserSerializer
 from .email_service import LegacyEmailService
+# Try to import Redis-based tasks first, fallback to simple tasks
+try:
+    from .tasks import schedule_message_delivery, enqueue_immediate_delivery, get_redis_status
+    REDIS_AVAILABLE = True
+except ImportError:
+    from .simple_tasks import schedule_message_delivery, enqueue_immediate_delivery
+    REDIS_AVAILABLE = False
+    
+    def get_redis_status():
+        return {
+            'connected': False,
+            'mode': 'fallback',
+            'queue_info': {'queued_jobs': 0, 'failed_jobs': 0, 'workers': 0}
+        }
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -37,15 +53,37 @@ class LegacyMessageListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         message = serializer.save()
         
-        # Schedule delivery if in future
+        # Schedule delivery based on delivery date
         if message.delivery_date > timezone.now():
             message.status = 'scheduled'
             message.save()
-            # TODO: Add scheduling logic when tasks are working
+            
+            # Schedule the background task for future delivery
+            try:
+                job_id = schedule_message_delivery(str(message.id), message.delivery_date)
+                if job_id:
+                    message.job_id = job_id
+                    logger.info(f"Scheduled message {message.id} for delivery at {message.delivery_date}")
+                else:
+                    logger.warning(f"Failed to schedule background task for message {message.id}")
+            except Exception as e:
+                logger.error(f"Error scheduling message {message.id}: {str(e)}")
+                message.status = 'created'
+                message.save()
         else:
-            # Immediate delivery
+            # Queue for immediate delivery
             message.status = 'created'
             message.save()
+            
+            try:
+                job_id = enqueue_immediate_delivery(str(message.id))
+                if job_id:
+                    message.job_id = job_id
+                    logger.info(f"Queued message {message.id} for immediate delivery")
+                else:
+                    logger.warning(f"Failed to queue message {message.id} for immediate delivery")
+            except Exception as e:
+                logger.error(f"Error queuing immediate delivery for message {message.id}: {str(e)}")
 
 class LegacyMessageDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = LegacyMessageSerializer
@@ -78,9 +116,54 @@ def dashboard_stats(request):
         'sent': messages.filter(status='sent').count(),
         'failed': messages.filter(status='failed').count(),
         'created': messages.filter(status='created').count(),
+        'pending': messages.filter(status='pending').count(),
     }
     
     return Response(stats)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def system_status(request):
+    """Get system status including Redis connection and queue information"""
+    redis_status = get_redis_status()
+    
+    # Get job statistics
+    user = request.user
+    user_messages = LegacyMessage.objects.filter(user_id=str(user.id))
+    pending_jobs = user_messages.filter(status='pending').count()
+    
+    status_data = {
+        'redis_available': REDIS_AVAILABLE,
+        'redis_connected': redis_status.get('connected', False),
+        'mode': redis_status.get('mode', 'fallback'),
+        'queue_info': redis_status.get('queue_info', {}),
+        'user_pending_jobs': pending_jobs,
+        'system_time': timezone.now().isoformat(),
+    }
+    
+    return Response(status_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def job_status(request, job_id):
+    """Get status of a specific job"""
+    try:
+        if REDIS_AVAILABLE:
+            from .tasks import get_job_status
+            job_info = get_job_status(job_id)
+            return Response(job_info)
+        else:
+            return Response({
+                'job_id': job_id,
+                'status': 'unknown',
+                'message': 'Redis not available - using fallback system'
+            })
+    except Exception as e:
+        return Response({
+            'error': str(e),
+            'job_id': job_id,
+            'status': 'error'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
