@@ -28,6 +28,7 @@ import {
   AccountCircle,
   Logout,
   Settings,
+  Analytics as MonitoringIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -81,6 +82,12 @@ const Layout = () => {
       path: '/messages/create',
       description: 'New Message'
     },
+    ...(user?.role === 'admin' ? [{
+      text: 'System Monitor',
+      icon: <MonitoringIcon />,
+      path: '/system',
+      description: 'Redis & Queue Status'
+    }] : []),
   ];
 
   const drawer = (

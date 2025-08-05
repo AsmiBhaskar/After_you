@@ -158,6 +158,16 @@ export const dashboardAPI = {
     const response = await api.get('/dashboard/stats/');
     return response.data;
   },
+  
+  getSystemStatus: async () => {
+    const response = await api.get('/system/status/');
+    return response.data;
+  },
+  
+  getJobStatus: async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/status/`);
+    return response.data;
+  },
 };
 
 // Generic API error handler

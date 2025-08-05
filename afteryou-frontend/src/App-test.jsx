@@ -85,9 +85,11 @@ function App() {
     <ThemeProvider theme={afterYouTheme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
+        <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </Box>
       </AuthProvider>
     </ThemeProvider>
   );

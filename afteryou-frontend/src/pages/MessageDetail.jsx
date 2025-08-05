@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { messagesAPI, handleAPIError } from '../services/api';
+import JobStatus from '../components/System/JobStatus';
 
 const MessageDetail = () => {
   const { id } = useParams();
@@ -193,6 +194,13 @@ const MessageDetail = () => {
                           color={getStatusColor(message.status)}
                           sx={{ textTransform: 'capitalize' }}
                         />
+                        {message.job_id && (
+                          <JobStatus 
+                            jobId={message.job_id} 
+                            autoRefresh={message.status === 'pending' || message.status === 'scheduled'}
+                            showRefresh={true}
+                          />
+                        )}
                       </Box>
                     </Box>
                   </Box>

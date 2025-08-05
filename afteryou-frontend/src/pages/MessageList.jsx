@@ -37,6 +37,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { messagesAPI, handleAPIError } from '../services/api';
+import JobStatus from '../components/System/JobStatus';
 
 const MessageCard = ({ message, onView, onEdit, onDelete, onSend, onSchedule, index }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -151,6 +152,13 @@ const MessageCard = ({ message, onView, onEdit, onDelete, onSend, onSchedule, in
                 variant="outlined"
                 size="small"
               />
+              {message.job_id && (
+                <JobStatus 
+                  jobId={message.job_id} 
+                  autoRefresh={message.status === 'pending'}
+                  showRefresh={false}
+                />
+              )}
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -22,10 +22,12 @@ import {
   Refresh as RefreshIcon,
   TrendingUp,
   AccessTime,
+  Pending as PendingIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { dashboardAPI, handleAPIError } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import SystemStatus from '../components/System/SystemStatus';
 
 const StatCard = ({ title, value, icon, color, description, loading }) => {
   const theme = useTheme();
@@ -89,6 +91,7 @@ const Dashboard = () => {
     sent: 0,
     failed: 0,
     created: 0,
+    pending: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -118,6 +121,13 @@ const Dashboard = () => {
       icon: <MessageIcon />,
       color: theme.palette.primary.main,
       description: 'All messages created',
+    },
+    {
+      title: 'Pending Jobs',
+      value: stats.pending,
+      icon: <PendingIcon />,
+      color: theme.palette.warning.main,
+      description: 'Jobs in queue',
     },
     {
       title: 'Scheduled',
@@ -288,6 +298,13 @@ const Dashboard = () => {
           ))}
         </Grid>
       </Box>
+
+      {/* System Status */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12}>
+          <SystemStatus />
+        </Grid>
+      </Grid>
 
       {/* Insights */}
       <motion.div

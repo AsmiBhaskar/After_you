@@ -84,12 +84,17 @@ const LoginPage = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #FAFBFF 0%, #F0F2FF 100%)',
         p: 2,
+        zIndex: 1,
       }}
     >
       <motion.div
