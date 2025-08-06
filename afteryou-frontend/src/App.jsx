@@ -11,6 +11,7 @@ import MessageList from './pages/MessageList';
 import CreateMessage from './pages/CreateMessage';
 import MessageDetail from './pages/MessageDetail';
 import SystemMonitoring from './pages/SystemMonitoring';
+import UserSettings from './pages/UserSettings';
 import Layout from './components/Layout/Layout';
 import LoadingScreen from './components/Common/LoadingScreen';
 
@@ -72,6 +73,7 @@ function AppRoutes() {
         <Route path="messages/create" element={<CreateMessage />} />
         <Route path="messages/:id" element={<MessageDetail />} />
         <Route path="system" element={<SystemMonitoring />} />
+        <Route path="settings" element={<UserSettings />} />
       </Route>
 
       {/* Catch all route */}

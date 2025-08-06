@@ -28,6 +28,7 @@ import { motion } from 'framer-motion';
 import { dashboardAPI, handleAPIError } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import SystemStatus from '../components/System/SystemStatus';
+import CheckInWidget from '../components/CheckIn/CheckInWidget';
 
 const StatCard = ({ title, value, icon, color, description, loading }) => {
   const theme = useTheme();
@@ -299,10 +300,13 @@ const Dashboard = () => {
         </Grid>
       </Box>
 
-      {/* System Status */}
+      {/* System Status and Check-in */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
+        <Grid item xs={12} md={8}>
           <SystemStatus />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <CheckInWidget />
         </Grid>
       </Grid>
 

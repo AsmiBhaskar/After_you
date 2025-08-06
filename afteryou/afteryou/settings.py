@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_rq',  # Django-RQ for background tasks
+    'django_celery_beat',  # Celery periodic tasks
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -241,3 +242,29 @@ LEGACY_MESSAGE_SETTINGS = {
     'MAX_RETRY_ATTEMPTS': 3,
     'RETRY_DELAY': 3600,  # 1 hour between retries
 }
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# Celery Beat (Periodic Tasks) Configuration
+try:
+    from celery.schedules import crontab
+    CELERY_BEAT_SCHEDULE = {
+        'check-dead-mans-switch': {
+            'task': 'accounts.tasks.check_dead_mans_switch',
+            'schedule': crontab(hour=9, minute=0),  # Run daily at 9 AM
+        },
+    }
+except ImportError:
+    # Fallback to interval schedule if crontab is not available
+    CELERY_BEAT_SCHEDULE = {
+        'check-dead-mans-switch': {
+            'task': 'accounts.tasks.check_dead_mans_switch',
+            'schedule': 60.0 * 60.0 * 24.0,  # Run daily (86400 seconds)
+        },
+    }
