@@ -161,7 +161,21 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite default port
-    "http://127.0.0.1:5173",
+    "http://localhost:5174",  # Vite alternative port 1
+    "http://localhost:5175",  # Vite alternative port 2
+    "http://localhost:5176",  # Vite alternative port 3
+    "http://localhost:5177",  # Vite alternative port 4
+    "http://localhost:5178",  # Vite alternative port 5
+    "http://localhost:5179",  # Vite alternative port 6
+    "http://localhost:5180",  # Vite alternative port 7
+    "http://127.0.0.1:5173",  # IPv4 localhost equivalents
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
+    "http://127.0.0.1:5176",
+    "http://127.0.0.1:5177",
+    "http://127.0.0.1:5178",
+    "http://127.0.0.1:5179",
+    "http://127.0.0.1:5180",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

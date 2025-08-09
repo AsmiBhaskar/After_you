@@ -2,6 +2,9 @@ from mongoengine import Document, StringField, DateTimeField, EmailField, Refere
 from datetime import datetime
 from accounts.models import User
 
+# Import the digital locker models
+from .digital_locker_models import DigitalLocker, CredentialEntry, LockerAccessToken, LockerAccessLog
+
 class LegacyMessage(Document):
     user_id = StringField(required=True)  
     title = StringField(required=True, max_length=200)
