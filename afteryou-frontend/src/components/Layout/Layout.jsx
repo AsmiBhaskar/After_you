@@ -29,6 +29,7 @@ import {
   Logout,
   Settings,
   Analytics as MonitoringIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -81,6 +82,12 @@ const Layout = () => {
       icon: <AddIcon />,
       path: '/messages/create',
       description: 'New Message'
+    },
+    {
+      text: 'Digital Locker',
+      icon: <SecurityIcon />,
+      path: '/digital-locker',
+      description: 'Secure Vault'
     },
     ...(user?.role === 'admin' ? [{
       text: 'System Monitor',

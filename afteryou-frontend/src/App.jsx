@@ -12,6 +12,8 @@ import CreateMessage from './pages/CreateMessage';
 import MessageDetail from './pages/MessageDetail';
 import SystemMonitoring from './pages/SystemMonitoring';
 import UserSettings from './pages/UserSettings';
+import DigitalLocker from './pages/DigitalLocker';
+import InheritanceAccess from './pages/InheritanceAccess';
 import Layout from './components/Layout/Layout';
 import LoadingScreen from './components/Common/LoadingScreen';
 
@@ -74,7 +76,14 @@ function AppRoutes() {
         <Route path="messages/:id" element={<MessageDetail />} />
         <Route path="system" element={<SystemMonitoring />} />
         <Route path="settings" element={<UserSettings />} />
+        <Route path="digital-locker" element={<DigitalLocker />} />
       </Route>
+
+      {/* Public inheritance access route */}
+      <Route 
+        path="/inheritance/:token" 
+        element={<InheritanceAccess />} 
+      />
 
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/login" replace />} />

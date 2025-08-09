@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // Create axios instance with default configuration
 const api = axios.create({
@@ -12,8 +12,8 @@ const api = axios.create({
 });
 
 // Token management
-const TOKEN_KEY = 'afteryou_token';
-const REFRESH_TOKEN_KEY = 'afteryou_refresh_token';
+const TOKEN_KEY = 'access_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
 
 export const tokenService = {
   getToken: () => localStorage.getItem(TOKEN_KEY),
@@ -53,7 +53,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = tokenService.getRefreshToken();
         if (refreshToken) {
-          const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
+          const response = await axios.post(`${API_BASE_URL}/api/token/refresh/`, {
             refresh: refreshToken,
           });
 
@@ -79,14 +79,14 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: async (credentials) => {
-    const response = await api.post('/auth/login/', credentials);
-    const { access, refresh, user } = response.data;
+    const response = await api.post('/accounts/api/login/', credentials);
+    const { access, refresh, user } = response.data.tokens;
     tokenService.setTokens(access, refresh);
-    return { user, tokens: { access, refresh } };
+    return { user: response.data.user, tokens: { access, refresh } };
   },
 
   register: async (userData) => {
-    const response = await api.post('/auth/register/', userData);
+    const response = await api.post('/accounts/api/register/', userData);
     return response.data;
   },
 
@@ -95,13 +95,13 @@ export const authAPI = {
   },
 
   getCurrentUser: async () => {
-    const response = await api.get('/auth/profile/');
-    return response.data;
+    const response = await api.get('/accounts/api/profile/');
+    return response.data.user;
   },
 
   refreshToken: async () => {
     const refreshToken = tokenService.getRefreshToken();
-    const response = await api.post('/auth/token/refresh/', {
+    const response = await api.post('/api/token/refresh/', {
       refresh: refreshToken,
     });
     const { access } = response.data;
@@ -113,39 +113,39 @@ export const authAPI = {
 // Messages API
 export const messagesAPI = {
   getMessages: async () => {
-    const response = await api.get('/messages/');
+    const response = await api.get('/legacy/api/messages/');
     return response.data;
   },
 
   getMessage: async (id) => {
-    const response = await api.get(`/messages/${id}/`);
+    const response = await api.get(`/legacy/api/messages/${id}/`);
     return response.data;
   },
 
   createMessage: async (messageData) => {
-    const response = await api.post('/messages/', messageData);
+    const response = await api.post('/legacy/api/messages/', messageData);
     return response.data;
   },
 
   updateMessage: async (id, messageData) => {
-    const response = await api.put(`/messages/${id}/`, messageData);
+    const response = await api.put(`/legacy/api/messages/${id}/`, messageData);
     return response.data;
   },
 
   deleteMessage: async (id) => {
-    const response = await api.delete(`/messages/${id}/`);
+    const response = await api.delete(`/legacy/api/messages/${id}/`);
     return response.data;
   },
 
   sendTestMessage: async (messageId) => {
-    const response = await api.post('/messages/send-test/', {
+    const response = await api.post('/legacy/api/messages/send-test/', {
       message_id: messageId,
     });
     return response.data;
   },
 
   scheduleMessage: async (messageId) => {
-    const response = await api.post('/messages/schedule/', {
+    const response = await api.post('/legacy/api/messages/schedule/', {
       message_id: messageId,
     });
     return response.data;
