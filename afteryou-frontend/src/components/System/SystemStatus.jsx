@@ -34,8 +34,10 @@ const SystemStatus = ({ autoRefresh = true, refreshInterval = 30000 }) => {
     try {
       setError(null);
       const data = await dashboardAPI.getSystemStatus();
+      console.log('System status data:', data); // Debug log
       setStatus(data);
     } catch (err) {
+      console.error('System status error:', err); // Debug log
       const errorInfo = handleAPIError(err);
       setError(errorInfo.message);
     } finally {
@@ -112,15 +114,15 @@ const SystemStatus = ({ autoRefresh = true, refreshInterval = 30000 }) => {
               {/* Redis Connection Status */}
               <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Box sx={{ color: getStatusColor(status.redis_connected) }}>
-                    {getStatusIcon(status.redis_connected)}
+                  <Box sx={{ color: getStatusColor(status.status?.redis_connected || false) }}>
+                    {getStatusIcon(status.status?.redis_connected || false)}
                   </Box>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Redis Connection
                   </Typography>
                   <Chip
-                    label={status.redis_connected ? 'Connected' : 'Disconnected'}
-                    color={status.redis_connected ? 'success' : 'error'}
+                    label={status.status?.redis_connected ? 'Connected' : 'Disconnected'}
+                    color={status.status?.redis_connected ? 'success' : 'error'}
                     size="small"
                   />
                 </Box>
@@ -134,8 +136,8 @@ const SystemStatus = ({ autoRefresh = true, refreshInterval = 30000 }) => {
                     Queue Mode
                   </Typography>
                   <Chip
-                    label={status.mode.toUpperCase()}
-                    color={getModeChipColor(status.mode)}
+                    label={status?.mode?.toUpperCase() || 'UNKNOWN'}
+                    color={getModeChipColor(status?.mode || 'unknown')}
                     size="small"
                   />
                 </Box>

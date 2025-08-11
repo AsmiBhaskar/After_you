@@ -100,8 +100,11 @@ const CreateMessage = () => {
 
     if (!formData.delivery_date) {
       errors.delivery_date = 'Delivery date is required';
-    } else if (formData.delivery_date.isBefore(dayjs())) {
+    } else if (formData.delivery_date.isBefore && formData.delivery_date.isBefore(dayjs())) {
       errors.delivery_date = 'Delivery date must be in the future';
+    } else if (!formData.delivery_date.isBefore) {
+      // If delivery_date doesn't have isBefore method, it's not a valid dayjs object
+      errors.delivery_date = 'Please select a valid delivery date';
     }
 
     setValidationErrors(errors);
@@ -119,7 +122,9 @@ const CreateMessage = () => {
 
       const messageData = {
         ...formData,
-        delivery_date: formData.delivery_date.toISOString(),
+        delivery_date: formData.delivery_date && formData.delivery_date.toISOString ? 
+          formData.delivery_date.toISOString() : 
+          formData.delivery_date,
       };
 
       const response = await messagesAPI.createMessage(messageData);
@@ -139,7 +144,7 @@ const CreateMessage = () => {
     }
   };
 
-  const isScheduled = formData.delivery_date && formData.delivery_date.isAfter(dayjs());
+  const isScheduled = formData.delivery_date && formData.delivery_date.isAfter && formData.delivery_date.isAfter(dayjs());
   const wordCount = formData.content.split(/\s+/).filter(word => word.length > 0).length;
 
   return (
@@ -282,7 +287,7 @@ const CreateMessage = () => {
                       </Typography>
                     </Box>
                     
-                    {formData.delivery_date && (
+                    {formData.delivery_date && formData.delivery_date.format && (
                       <Box>
                         <Typography variant="body2" color="text.secondary">
                           Delivery Time
@@ -291,7 +296,7 @@ const CreateMessage = () => {
                           {formData.delivery_date.format('MMM DD, YYYY [at] h:mm A')}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {formData.delivery_date.fromNow()}
+                          {formData.delivery_date.fromNow ? formData.delivery_date.fromNow() : 'Time calculation unavailable'}
                         </Typography>
                       </Box>
                     )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -81,10 +81,40 @@ const StatCard = ({ title, value, icon, color, description, loading }) => {
   );
 };
 
+// Simple Error Boundary
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Component error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <div>Something went wrong.</div>;
+    }
+
+    return this.props.children;
+  }
+}
+
 const Dashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Debug authentication
+  useEffect(() => {
+    console.log('Dashboard - User:', user);
+    console.log('Dashboard - Access Token:', localStorage.getItem('access_token'));
+  }, [user]);
 
   const [stats, setStats] = useState({
     total_messages: 0,
@@ -232,7 +262,7 @@ const Dashboard = () => {
       {/* Statistics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {statCards.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={stat.title}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={stat.title}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -251,7 +281,7 @@ const Dashboard = () => {
         </Typography>
         <Grid container spacing={3}>
           {quickActions.map((action, index) => (
-            <Grid item xs={12} md={6} key={action.title}>
+            <Grid size={{ xs: 12, md: 6 }} key={action.title}>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -302,10 +332,18 @@ const Dashboard = () => {
 
       {/* System Status and Check-in */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={8}>
-          <SystemStatus />
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">System Status</Typography>
+              <Typography variant="body2">System status temporarily disabled for debugging</Typography>
+            </CardContent>
+          </Card>
+          {/* <ErrorBoundary fallback={<div>Error loading system status</div>}>
+            <SystemStatus />
+          </ErrorBoundary> */}
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <CheckInWidget />
         </Grid>
       </Grid>

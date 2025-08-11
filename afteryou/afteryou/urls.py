@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     # API endpoints
     path('', include('legacy.api_urls')),
+    path('', include('accounts.urls')),  # Also include accounts URLs at root level for dashboard/system APIs
     # JWT token endpoints
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

@@ -57,12 +57,21 @@ const CheckInWidget = () => {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        setStatus(data);
-        setSettings({
-          check_in_interval_months: data.check_in_interval_months,
-          grace_period_days: data.grace_period_days,
-        });
+        const text = await response.text();
+        try {
+          const data = JSON.parse(text);
+          setStatus(data);
+          setSettings({
+            check_in_interval_months: data.check_in_interval_months,
+            grace_period_days: data.grace_period_days,
+          });
+        } catch (parseError) {
+          console.error('Response is not valid JSON:', text);
+          console.error('Parse error:', parseError);
+        }
+      } else {
+        const text = await response.text();
+        console.error('API response error:', response.status, text);
       }
     } catch (error) {
       console.error('Error fetching check-in status:', error);
