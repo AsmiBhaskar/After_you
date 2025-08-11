@@ -35,8 +35,10 @@ import JobStatus from '../components/System/JobStatus';
 
 const MessageDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   
+  // Defensive: Only allow valid MongoDB ObjectId (24 hex chars)
+  const isValidId = id && typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -44,6 +46,11 @@ const MessageDetail = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const fetchMessage = async () => {
+    if (!isValidId) {
+      setError('Invalid message ID.');
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -62,6 +69,11 @@ const MessageDetail = () => {
   }, [id]);
 
   const handleDelete = async () => {
+    if (!isValidId) {
+      setError('Invalid message ID.');
+      setActionLoading(false);
+      return;
+    }
     try {
       setActionLoading(true);
       await messagesAPI.deleteMessage(id);
@@ -74,6 +86,11 @@ const MessageDetail = () => {
   };
 
   const handleSendTest = async () => {
+    if (!isValidId) {
+      setError('Invalid message ID.');
+      setActionLoading(false);
+      return;
+    }
     try {
       setActionLoading(true);
       await messagesAPI.sendTestMessage(id);
@@ -87,6 +104,11 @@ const MessageDetail = () => {
   };
 
   const handleSchedule = async () => {
+    if (!isValidId) {
+      setError('Invalid message ID.');
+      setActionLoading(false);
+      return;
+    }
     try {
       setActionLoading(true);
       await messagesAPI.scheduleMessage(id);

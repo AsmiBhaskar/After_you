@@ -113,39 +113,39 @@ export const authAPI = {
 // Messages API
 export const messagesAPI = {
   getMessages: async () => {
-    const response = await api.get('/legacy/api/messages/');
+    const response = await api.get('/api/messages/');
     return response.data;
   },
 
   getMessage: async (id) => {
-    const response = await api.get(`/legacy/api/messages/${id}/`);
+    const response = await api.get(`/api/messages/${id}/`);
     return response.data;
   },
 
   createMessage: async (messageData) => {
-    const response = await api.post('/legacy/api/messages/', messageData);
+    const response = await api.post('/api/messages/', messageData);
     return response.data;
   },
 
   updateMessage: async (id, messageData) => {
-    const response = await api.put(`/legacy/api/messages/${id}/`, messageData);
+    const response = await api.put(`/api/messages/${id}/`, messageData);
     return response.data;
   },
 
   deleteMessage: async (id) => {
-    const response = await api.delete(`/legacy/api/messages/${id}/`);
+    const response = await api.delete(`/api/messages/${id}/`);
     return response.data;
   },
 
   sendTestMessage: async (messageId) => {
-    const response = await api.post('/legacy/api/messages/send-test/', {
+    const response = await api.post('/api/messages/send-test/', {
       message_id: messageId,
     });
     return response.data;
   },
 
   scheduleMessage: async (messageId) => {
-    const response = await api.post('/legacy/api/messages/schedule/', {
+    const response = await api.post('/api/messages/schedule/', {
       message_id: messageId,
     });
     return response.data;

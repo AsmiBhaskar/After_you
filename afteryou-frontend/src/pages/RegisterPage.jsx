@@ -102,11 +102,24 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('Form data:', formData); // Debug log
+    
     if (!validateForm()) {
+      console.log('Validation failed'); // Debug log
       return;
     }
 
-    const { confirmPassword, ...registrationData } = formData;
+    // Prepare data for backend - rename confirmPassword to password2
+    const registrationData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      password2: formData.confirmPassword,
+      role: formData.role,
+    };
+
+    console.log('Registration data:', registrationData); // Debug log
+
     const result = await register(registrationData);
     
     if (result.success) {

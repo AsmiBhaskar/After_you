@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import MessageList from './pages/MessageList';
 import CreateMessage from './pages/CreateMessage';
 import MessageDetail from './pages/MessageDetail';
+import EditMessage from './pages/EditMessage';
 import SystemMonitoring from './pages/SystemMonitoring';
 import UserSettings from './pages/UserSettings';
 import DigitalLocker from './pages/DigitalLocker';
@@ -71,9 +72,10 @@ function AppRoutes() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="messages" element={<MessageList />} />
-        <Route path="messages/create" element={<CreateMessage />} />
-        <Route path="messages/:id" element={<MessageDetail />} />
+  <Route path="messages" element={<MessageList />} />
+  <Route path="messages/create" element={<CreateMessage />} />
+  <Route path="messages/:id" element={<MessageDetail />} />
+  <Route path="messages/:id/edit" element={<EditMessage />} />
         <Route path="system" element={<SystemMonitoring />} />
         <Route path="settings" element={<UserSettings />} />
         <Route path="digital-locker" element={<DigitalLocker />} />

@@ -9,6 +9,8 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/register/', api_views.register_user, name='api_register'),
     path('api/auth/profile/', api_views.user_profile, name='api_user_profile'),
+    path('api/settings/', api_views.user_settings, name='api_user_settings'),
+    path('accounts/api/settings/', api_views.user_settings, name='api_user_settings_accounts'),
     
     # Messages endpoints
     path('api/messages/', api_views.LegacyMessageListCreateView.as_view(), name='api_messages_list'),

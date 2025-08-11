@@ -259,7 +259,8 @@ const MessageList = () => {
       setLoading(true);
       setError(null);
       const data = await messagesAPI.getMessages();
-      setMessages(data);
+      // If paginated, use data.results; else, use data
+      setMessages(Array.isArray(data) ? data : data.results || []);
     } catch (err) {
       const errorInfo = handleAPIError(err);
       setError(errorInfo.message);
@@ -273,6 +274,10 @@ const MessageList = () => {
   }, []);
 
   const handleDeleteMessage = async (messageId) => {
+    if (!messageId || typeof messageId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(messageId)) {
+      setError('Invalid message ID.');
+      return;
+    }
     try {
       await messagesAPI.deleteMessage(messageId);
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
@@ -283,6 +288,10 @@ const MessageList = () => {
   };
 
   const handleSendMessage = async (messageId) => {
+    if (!messageId || typeof messageId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(messageId)) {
+      setError('Invalid message ID.');
+      return;
+    }
     try {
       await messagesAPI.sendTestMessage(messageId);
       // Refresh messages to get updated status
@@ -294,6 +303,10 @@ const MessageList = () => {
   };
 
   const handleScheduleMessage = async (messageId) => {
+    if (!messageId || typeof messageId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(messageId)) {
+      setError('Invalid message ID.');
+      return;
+    }
     try {
       await messagesAPI.scheduleMessage(messageId);
       // Refresh messages to get updated status

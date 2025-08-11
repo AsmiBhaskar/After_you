@@ -9,7 +9,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.timezone import now
 from datetime import timedelta
 from django.db import connection
+from django.views.decorators.csrf import csrf_exempt
 from .models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -444,3 +448,47 @@ def job_status_api(request, job_id):
             {'error': str(e), 'job_id': job_id},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@csrf_exempt
+def api_check_in_status(request):
+    """Get check-in status for the authenticated user"""
+    user = request.user
+    current_time = now()
+    months_in_days = 30 * getattr(user, 'check_in_interval_months', 6)
+    next_check_in_due = user.last_check_in + timedelta(days=months_in_days)
+    is_overdue = current_time > next_check_in_due
+    in_grace_period = False
+    grace_period_end = None
+    if user.notification_sent_at:
+        grace_period_end = user.notification_sent_at + timedelta(days=getattr(user, 'grace_period_days', 10))
+        in_grace_period = current_time < grace_period_end
+    return Response({
+        'last_check_in': user.last_check_in.isoformat() if user.last_check_in else None,
+        'next_check_in_due': next_check_in_due.isoformat() if next_check_in_due else None,
+        'check_in_interval_months': getattr(user, 'check_in_interval_months', 6),
+        'grace_period_days': getattr(user, 'grace_period_days', 10),
+        'is_overdue': is_overdue,
+        'notification_sent_at': user.notification_sent_at.isoformat() if user.notification_sent_at else None,
+        'in_grace_period': in_grace_period,
+        'grace_period_end': grace_period_end.isoformat() if grace_period_end else None,
+        'scheduled_messages_count': user.legacymessage_set.filter(status='scheduled').count() if hasattr(user, 'legacymessage_set') else 0
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@csrf_exempt
+def api_check_in(request):
+    """Check-in API for the authenticated user"""
+    user = request.user
+    user.last_check_in = now()
+    user.notification_sent_at = None
+    user.save()
+    months_in_days = 30 * getattr(user, 'check_in_interval_months', 6)
+    return Response({
+        'success': True,
+        'message': 'Check-in successful! Your timer has been reset.',
+        'last_check_in': user.last_check_in.isoformat(),
+        'next_check_in_due': (now() + timedelta(days=months_in_days)).isoformat()
+    })

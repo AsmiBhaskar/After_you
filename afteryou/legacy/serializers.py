@@ -10,29 +10,37 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'role', 'bio']
         read_only_fields = ['id']
 
-class LegacyMessageSerializer(serializers.ModelSerializer):
+class LegacyMessageSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        # Only update fields present in validated_data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+    id = serializers.CharField(read_only=True)
+    title = serializers.CharField()
+    content = serializers.CharField()
+    recipient_email = serializers.EmailField()
+    delivery_date = serializers.DateTimeField()
+    status = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    sent_at = serializers.DateTimeField(allow_null=True, required=False, read_only=True)
     user_email = serializers.CharField(source='user_id', read_only=True)
-    
-    class Meta:
-        model = LegacyMessage
-        fields = [
-            'id', 'title', 'content', 'recipient_email', 
-            'delivery_date', 'status', 'created_at', 'sent_at',
-            'user_email', 'job_id'
-        ]
-        read_only_fields = ['id', 'created_at', 'sent_at', 'user_email', 'job_id']
+    job_id = serializers.CharField(allow_null=True, required=False, read_only=True)
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        # Convert ObjectId to string
-        data['id'] = str(instance.id)
-        # Format dates
-        if instance.created_at:
-            data['created_at'] = instance.created_at.isoformat()
-        if instance.delivery_date:
-            data['delivery_date'] = instance.delivery_date.isoformat()
-        if instance.sent_at:
-            data['sent_at'] = instance.sent_at.isoformat()
+        data = {
+            'id': str(instance.id),
+            'title': instance.title,
+            'content': instance.content,
+            'recipient_email': instance.recipient_email,
+            'delivery_date': instance.delivery_date.isoformat() if instance.delivery_date else None,
+            'status': instance.status,
+            'created_at': instance.created_at.isoformat() if instance.created_at else None,
+            'sent_at': instance.sent_at.isoformat() if instance.sent_at else None,
+            'user_email': getattr(instance, 'user_id', None),
+            'job_id': getattr(instance, 'job_id', None),
+        }
         return data
 
 class LegacyMessageCreateSerializer(serializers.Serializer):

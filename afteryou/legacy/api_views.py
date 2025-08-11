@@ -1,3 +1,30 @@
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+@api_view(['GET', 'POST', 'PUT'])
+@permission_classes([IsAuthenticated])
+def user_settings(request):
+    """Endpoint for user settings: GET returns current, POST updates (echoes) settings."""
+    if request.method == 'GET':
+        # Return a default settings object; customize as needed
+        return Response({
+            'notifications_enabled': True,
+            'check_in_frequency_days': 7,
+            'email_reminders': True,
+            'timezone': 'UTC',
+        })
+    elif request.method in ['POST', 'PUT']:
+        # Accept settings from frontend and echo back (no DB persistence yet)
+        data = request.data
+        # Optionally validate fields here
+        return Response({
+            'success': True,
+            'settings': data
+        })
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
