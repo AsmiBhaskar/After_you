@@ -5,25 +5,31 @@ const afterYouTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#6B73FF', // Soft indigo - digital mystique
-      light: '#9FA5FF',
-      dark: '#3F47CC',
-      contrastText: '#FFFFFF',
+      main: '#2D2D2D', // Charcoal Grey
+      light: '#595959',
+      dark: '#1A1A1A',
+      contrastText: '#FAF3E0',
     },
     secondary: {
-      main: '#FF6B9D', // Gentle rose - emotional connection
-      light: '#FF9FBF',
-      dark: '#CC3770',
-      contrastText: '#FFFFFF',
+      main: '#FAF3E0', // Cream White
+      light: '#FFFFFF',
+      dark: '#E0DAC8',
+      contrastText: '#2D2D2D',
+    },
+    accent: {
+      main: '#D97B4E', // Burnt Orange
+      dark: '#7B2D26', // Burgundy (for dark accent)
+      contrastText: '#FAF3E0',
     },
     background: {
-      default: '#FAFBFF', // Almost white with slight blue tint
+      default: '#FAF3E0', // Cream White
       paper: '#FFFFFF',
     },
     text: {
-      primary: '#2D3436', // Dark charcoal
-      secondary: '#636E72', // Medium gray
+      primary: '#3E2F2F', // Rich Brown
+      secondary: '#7B2D26', // Burgundy as secondary text
     },
+    divider: '#E0DAC8', // Soft beige
     grey: {
       100: '#F8F9FA',
       200: '#E9ECEF',
@@ -35,26 +41,17 @@ const afterYouTheme = createTheme({
       800: '#343A40',
       900: '#212529',
     },
-    divider: '#E9ECEF',
     success: {
-      main: '#00B894',
-      light: '#55C4A7',
-      dark: '#00A085',
+      main: '#4CAF50',
     },
     warning: {
-      main: '#FDCB6E',
-      light: '#FFD93D',
-      dark: '#E17055',
+      main: '#D97B4E', // Use burnt orange as warning/accent
     },
     error: {
-      main: '#E17055',
-      light: '#FF7675',
-      dark: '#D63031',
+      main: '#B00020',
     },
     info: {
-      main: '#74B9FF',
-      light: '#A29BFE',
-      dark: '#0984E3',
+      main: '#2D2D2D',
     },
   },
   typography: {
