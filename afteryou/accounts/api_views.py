@@ -451,7 +451,6 @@ def job_status_api(request, job_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-@csrf_exempt
 def api_check_in_status(request):
     """Get check-in status for the authenticated user"""
     user = request.user
@@ -478,7 +477,6 @@ def api_check_in_status(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@csrf_exempt
 def api_check_in(request):
     """Check-in API for the authenticated user"""
     user = request.user

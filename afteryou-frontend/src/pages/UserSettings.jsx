@@ -49,23 +49,32 @@ const UserSettings = () => {
 
   const fetchUserSettings = async () => {
     try {
-      const response = await fetch('/accounts/api/check-in/status/', {
+      const response = await fetch('/api/check-in/status/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
-      
       if (response.ok) {
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonErr) {
+          setMessage({ type: 'error', text: 'Invalid server response. Please try again later.' });
+          return;
+        }
         setStatus(data);
         setSettings({
           check_in_interval_months: data.check_in_interval_months,
           grace_period_days: data.grace_period_days,
         });
+      } else {
+        let errorMsg = 'Failed to load settings';
+        if (response.status === 401) errorMsg = 'You are not authorized. Please log in again.';
+        else if (response.status === 500) errorMsg = 'Server error. Please try again later.';
+        setMessage({ type: 'error', text: errorMsg });
       }
     } catch (error) {
-      console.error('Error fetching user settings:', error);
-      setMessage({ type: 'error', text: 'Failed to load settings' });
+      setMessage({ type: 'error', text: 'Network error. Please check your connection.' });
     } finally {
       setLoading(false);
     }
@@ -74,7 +83,7 @@ const UserSettings = () => {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/accounts/api/settings/', {
+      const response = await fetch('/api/settings/', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -82,16 +91,24 @@ const UserSettings = () => {
         },
         body: JSON.stringify(settings),
       });
-      
       if (response.ok) {
         setMessage({ type: 'success', text: 'Settings saved successfully!' });
         await fetchUserSettings(); // Refresh data
       } else {
-        setMessage({ type: 'error', text: 'Failed to save settings' });
+        let errorMsg = 'Failed to save settings';
+        if (response.status === 400) errorMsg = 'Invalid input. Please check your settings.';
+        else if (response.status === 401) errorMsg = 'You are not authorized. Please log in again.';
+        else if (response.status === 500) errorMsg = 'Server error. Please try again later.';
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) errorMsg = errData.error;
+        } catch (jsonErr) {
+          // Ignore JSON parse error, use generic errorMsg
+        }
+        setMessage({ type: 'error', text: errorMsg });
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
-      setMessage({ type: 'error', text: 'Failed to save settings' });
+      setMessage({ type: 'error', text: 'Network error. Please check your connection.' });
     } finally {
       setSaving(false);
     }

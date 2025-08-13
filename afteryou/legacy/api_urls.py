@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import api_views
+from accounts.api_views import api_check_in, api_check_in_status
 
 urlpatterns = [
     # Authentication endpoints
@@ -11,6 +12,8 @@ urlpatterns = [
     path('api/auth/profile/', api_views.user_profile, name='api_user_profile'),
     path('api/settings/', api_views.user_settings, name='api_user_settings'),
     path('accounts/api/settings/', api_views.user_settings, name='api_user_settings_accounts'),
+    path('api/check-in/', api_check_in, name='api_check_in'),
+    path('api/check-in/status/', api_check_in_status, name='api_check_in_status'),
     
     # Messages endpoints
     path('api/messages/', api_views.LegacyMessageListCreateView.as_view(), name='api_messages_list'),

@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const CheckInWidget = () => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,8 @@ const CheckInWidget = () => {
 
   const fetchCheckInStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/accounts/api/check-in/status/', {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const response = await fetch(`${API_BASE_URL}/api/check-in/status/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
@@ -83,7 +85,7 @@ const CheckInWidget = () => {
   const handleCheckIn = async () => {
     setCheckingIn(true);
     try {
-      const response = await fetch('http://localhost:8000/accounts/api/check-in/', {
+  const response = await fetch(`${API_BASE_URL}/api/check-in/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -104,7 +106,7 @@ const CheckInWidget = () => {
   const updateSettings = async () => {
     setUpdating(true);
     try {
-      const response = await fetch('http://localhost:8000/api/settings/', {
+  const response = await fetch(`${API_BASE_URL}/api/settings/`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,

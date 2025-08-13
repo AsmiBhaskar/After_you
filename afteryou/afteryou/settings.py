@@ -1,3 +1,6 @@
+# Frontend URL for email links and cross-origin use
+import os
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 """
 Django settings for afteryou project.
 

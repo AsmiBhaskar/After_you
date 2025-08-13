@@ -16,9 +16,8 @@ urlpatterns = [
     path('api/profile/', user_profile_api, name='user_profile_api'),
     
     # Dead man's switch API endpoints
-    path('api/check-in/', api_views.api_check_in, name='api_check_in'),
-    path('api/check-in/status/', api_views.api_check_in_status, name='api_check_in_status'),
-    path('api/settings/', update_user_settings_view, name='update_settings'),
+    # Canonical API endpoints (mounted at root by afteryou/urls.py)
+    # path('api/check-in/', ...) and path('api/settings/', ...) are included at root only
     
     # Dashboard and system monitoring API endpoints
     path('dashboard/stats/', dashboard_stats_api, name='dashboard_stats'),

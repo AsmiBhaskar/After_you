@@ -4,26 +4,42 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
 @api_view(['GET', 'POST', 'PUT'])
 @permission_classes([IsAuthenticated])
 def user_settings(request):
-    """Endpoint for user settings: GET returns current, POST updates (echoes) settings."""
+    """
+    Endpoint for user settings: GET returns current settings, POST/PUT updates settings.
+    Persists settings in the User model.
+    """
+    user = request.user
     if request.method == 'GET':
-        # Return a default settings object; customize as needed
         return Response({
-            'notifications_enabled': True,
-            'check_in_frequency_days': 7,
-            'email_reminders': True,
-            'timezone': 'UTC',
+            'check_in_interval_months': user.check_in_interval_months,
+            'grace_period_days': user.grace_period_days,
+            'notification_sent_at': user.notification_sent_at.isoformat() if user.notification_sent_at else None,
         })
     elif request.method in ['POST', 'PUT']:
-        # Accept settings from frontend and echo back (no DB persistence yet)
         data = request.data
-        # Optionally validate fields here
+        updated = False
+        if 'check_in_interval_months' in data:
+            interval = int(data['check_in_interval_months'])
+            if 1 <= interval <= 24:
+                user.check_in_interval_months = interval
+                updated = True
+        if 'grace_period_days' in data:
+            grace = int(data['grace_period_days'])
+            if 1 <= grace <= 30:
+                user.grace_period_days = grace
+                updated = True
+        user.save()
         return Response({
             'success': True,
-            'settings': data
+            'updated': updated,
+            'settings': {
+                'check_in_interval_months': user.check_in_interval_months,
+                'grace_period_days': user.grace_period_days,
+                'notification_sent_at': user.notification_sent_at.isoformat() if user.notification_sent_at else None,
+            }
         })
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
