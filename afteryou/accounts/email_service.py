@@ -13,7 +13,7 @@ class DeadMansSwitchEmailService:
         
         context = {
             'user': user,
-            'check_in_url': f"{settings.FRONTEND_URL}/dashboard",  # Will need to add this setting
+            'check_in_url': f"{settings.FRONTEND_URL}/dashboard",
             'grace_period_days': user.grace_period_days,
         }
         

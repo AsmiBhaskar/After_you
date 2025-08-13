@@ -21,6 +21,8 @@ class DigitalLockerEmailService:
             'inheritor_name': locker.inheritor_name,
             'otp_token': otp_token,
             'access_url': f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')}/digital-locker/access/{locker.id}",
+            # Use settings.FRONTEND_URL if available
+            'access_url': f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')}/digital-locker/access/{locker.id}",
             'expires_hours': locker.otp_valid_hours,
             'credential_count': locker.credentials.filter(is_active=True).count(),
         }
