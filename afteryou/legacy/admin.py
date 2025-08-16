@@ -35,5 +35,5 @@ class LegacyMessageAdmin:
 # This requires creating custom admin views since MongoEngine models
 # don't work directly with Django's admin system
 
-# Register your Django models here (not MongoDB models)
+# Register Django models here (not MongoDB models)
 # MongoDB models (LegacyMessage) require custom admin views
