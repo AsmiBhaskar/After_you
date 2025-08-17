@@ -21,12 +21,13 @@ class LegacyEmailService:
     """
     
     @staticmethod
-    def send_legacy_message(message_id):
+    def send_legacy_message(message_id, template_name=None):
         """
         Send a single legacy message via email
         
         Args:
             message_id (str): MongoDB ObjectId of the message to send
+            template_name (str): Optional custom template name
             
         Returns:
             bool: True if successful, False otherwise
@@ -35,22 +36,51 @@ class LegacyEmailService:
             # Get the message from database
             message = LegacyMessage.objects.get(id=message_id)
             
-            # Prepare email content
-            subject = f"Legacy Message: {message.title}"
+            # Determine email subject based on message type
+            if message.parent_message:
+                subject = f"Legacy Chain Message: {message.title}"
+            else:
+                subject = f"Legacy Message: {message.title}"
             
-            # Create HTML email content
-            html_content = LegacyEmailService._render_email_template(message)
+            # Create HTML email content with appropriate template
+            if template_name:
+                html_content = LegacyEmailService._render_email_template(message, template_name)
+            else:
+                # Choose template based on message type
+                if message.parent_message:
+                    html_content = LegacyEmailService._render_chain_email_template(message)
+                else:
+                    html_content = LegacyEmailService._render_email_template(message)
             
             # Create plain text fallback
-            text_content = f"""
+            if message.parent_message:
+                text_content = f"""
+{message.title}
+
+{message.content}
+
+---
+This is part of a legacy chain (Generation {message.generation}).
+Added by: {message.sender_name or 'Anonymous'}
+
+View the full chain and add your own message:
+{settings.FRONTEND_URL}/legacy/message/{message.recipient_access_token}
+
+Sent via AfterYou Legacy Messages.
+                """.strip()
+            else:
+                text_content = f"""
 {message.title}
 
 {message.content}
 
 ---
 This message was scheduled to be delivered on {message.delivery_date.strftime('%B %d, %Y at %I:%M %p')}.
+View and extend this legacy:
+{settings.FRONTEND_URL}/legacy/message/{message.recipient_access_token}
+
 Sent via AfterYou Legacy Messages.
-            """.strip()
+                """.strip()
             
             # Send email using Django's email system
             email = EmailMultiAlternatives(
@@ -196,6 +226,141 @@ Sent via AfterYou Legacy Messages.
         <div class="footer">
             <p>This message was created and scheduled through AfterYou Legacy Messages.<br>
             A service for connecting present moments with future hearts.</p>
+            <p><a href="{settings.FRONTEND_URL}/legacy/message/{message.recipient_access_token}" style="color: #6B73FF;">View & Extend This Legacy</a></p>
+        </div>
+    </div>
+</body>
+</html>
+            """
+    
+    @staticmethod
+    def _render_chain_email_template(message):
+        """
+        Render HTML email template for chain legacy message
+        
+        Args:
+            message (LegacyMessage): The chain message object
+            
+        Returns:
+            str: Rendered HTML content
+        """
+        try:
+            # Try to use a template if it exists
+            return render_to_string('legacy/chain_email_template.html', {
+                'message': message,
+                'parent_message': message.parent_message,
+                'delivery_date': message.delivery_date,
+                'sent_date': timezone.now(),
+                'frontend_url': settings.FRONTEND_URL,
+            })
+        except:
+            # Fallback to simple HTML if template doesn't exist
+            return f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Legacy Chain Message: {message.title}</title>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }}
+        .container {{
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            border-bottom: 3px solid #9C27B0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }}
+        .title {{
+            color: #9C27B0;
+            font-size: 28px;
+            margin: 0;
+            font-weight: 600;
+        }}
+        .subtitle {{
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+        }}
+        .chain-info {{
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #9C27B0;
+        }}
+        .content {{
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+        }}
+        .footer {{
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }}
+        .action-buttons {{
+            text-align: center;
+            margin: 30px 0;
+        }}
+        .btn {{
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }}
+        .btn-primary {{
+            background-color: #9C27B0;
+            color: white;
+        }}
+        .btn-secondary {{
+            background-color: #6B73FF;
+            color: white;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">{message.title}</h1>
+            <p class="subtitle">A Legacy Chain Message from AfterYou</p>
+        </div>
+        
+        <div class="chain-info">
+            <strong>🔗 This is Generation {message.generation} of a Legacy Chain</strong><br>
+            <small>Added by: {message.sender_name or 'Anonymous'}</small>
+        </div>
+        
+        <div class="content">
+{message.content}
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{settings.FRONTEND_URL}/legacy/message/{message.recipient_access_token}" class="btn btn-primary">View Message</a>
+            <a href="{settings.FRONTEND_URL}/legacy/message/{message.recipient_access_token}/extend" class="btn btn-secondary">Add Your Message & Pass It Forward</a>
+        </div>
+        
+        <div class="footer">
+            <p>This legacy chain continues the memories across generations.<br>
+            <a href="{settings.FRONTEND_URL}/legacy/message/{message.recipient_access_token}/chain" style="color: #9C27B0;">View Full Chain History</a></p>
+            <p>Sent via AfterYou Legacy Messages.</p>
         </div>
     </div>
 </body>

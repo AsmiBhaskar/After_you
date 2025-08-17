@@ -27,6 +27,13 @@ class LegacyMessageSerializer(serializers.Serializer):
     sent_at = serializers.DateTimeField(allow_null=True, required=False, read_only=True)
     user_email = serializers.CharField(source='user_id', read_only=True)
     job_id = serializers.CharField(allow_null=True, required=False, read_only=True)
+    
+    # Chain fields
+    parent_message = serializers.CharField(allow_null=True, required=False, read_only=True)
+    chain_id = serializers.CharField(read_only=True)
+    generation = serializers.IntegerField(read_only=True)
+    sender_name = serializers.CharField(allow_null=True, required=False, read_only=True)
+    recipient_access_token = serializers.CharField(read_only=True)
 
     def to_representation(self, instance):
         data = {
@@ -40,6 +47,11 @@ class LegacyMessageSerializer(serializers.Serializer):
             'sent_at': instance.sent_at.isoformat() if instance.sent_at else None,
             'user_email': getattr(instance, 'user_id', None),
             'job_id': getattr(instance, 'job_id', None),
+            'parent_message': str(instance.parent_message.id) if instance.parent_message else None,
+            'chain_id': str(instance.chain_id) if instance.chain_id else None,
+            'generation': getattr(instance, 'generation', 1),
+            'sender_name': getattr(instance, 'sender_name', None),
+            'recipient_access_token': str(instance.recipient_access_token) if instance.recipient_access_token else None,
         }
         return data
 

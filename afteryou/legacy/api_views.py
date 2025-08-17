@@ -317,3 +317,136 @@ def register_user(request):
         
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# CHAIN FUNCTIONALITY - NEW ENDPOINTS
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def view_message_by_token(request, token):
+    """Allow recipients to view their message using access token"""
+    try:
+        message = LegacyMessage.objects.get(recipient_access_token=token)
+        serializer = LegacyMessageSerializer(message)
+        return Response({
+            'message': serializer.data,
+            'can_extend': True,  # Recipients can always extend the chain
+            'chain_info': {
+                'generation': message.generation,
+                'chain_id': str(message.chain_id)
+            }
+        })
+    except LegacyMessage.DoesNotExist:
+        return Response({'error': 'Message not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def extend_chain(request, token):
+    """Allow recipients to add their message to the chain"""
+    try:
+        # Get the original message
+        parent_message = LegacyMessage.objects.get(recipient_access_token=token)
+        
+        # Validate required fields
+        sender_name = request.data.get('sender_name', 'Anonymous')
+        recipient_email = request.data.get('recipient_email')
+        content = request.data.get('content')
+        
+        if not recipient_email or not content:
+            return Response({
+                'error': 'recipient_email and content are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create new message in the chain
+        new_message = LegacyMessage(
+            user_id=parent_message.user_id,  # Keep same user_id for tracking
+            title=f"Re: {parent_message.title}",
+            content=content,
+            recipient_email=recipient_email,
+            delivery_date=timezone.now(),  # Deliver immediately
+            sender_name=sender_name,
+            parent_message=parent_message,
+            chain_id=parent_message.chain_id,
+            generation=parent_message.generation + 1,
+            status='created'
+        )
+        new_message.save()
+        
+        # Queue for immediate delivery
+        try:
+            job_id = enqueue_immediate_delivery(str(new_message.id))
+            if job_id:
+                new_message.job_id = job_id
+                new_message.status = 'pending'
+                new_message.save()
+                logger.info(f"Queued chain message {new_message.id} for immediate delivery")
+        except Exception as e:
+            logger.error(f"Error queuing chain message {new_message.id}: {str(e)}")
+        
+        return Response({
+            'success': True,
+            'message': 'Message added to chain successfully',
+            'chain_generation': new_message.generation,
+            'message_id': str(new_message.id)
+        }, status=status.HTTP_201_CREATED)
+        
+    except LegacyMessage.DoesNotExist:
+        return Response({'error': 'Original message not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def view_full_chain(request, token):
+    """View the entire message chain"""
+    try:
+        message = LegacyMessage.objects.get(recipient_access_token=token)
+        chain_messages = LegacyMessage.objects.filter(
+            chain_id=message.chain_id
+        ).order_by('generation')
+        
+        serializer = LegacyMessageSerializer(chain_messages, many=True)
+        return Response({
+            'chain': serializer.data,
+            'total_generations': len(chain_messages),
+            'current_generation': message.generation
+        })
+    except LegacyMessage.DoesNotExist:
+        return Response({'error': 'Message not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_chains(request):
+    """Get all message chains created by the authenticated user"""
+    try:
+        user = request.user
+        
+        # Get all original messages (generation 1) created by this user
+        original_messages = LegacyMessage.objects.filter(
+            user_id=str(user.id),
+            generation=1
+        ).order_by('-created_at')
+        
+        chains = []
+        for original in original_messages:
+            # Get all messages in this chain
+            chain_messages = LegacyMessage.objects.filter(
+                chain_id=original.chain_id
+            ).order_by('generation')
+            
+            chains.append({
+                'chain_id': str(original.chain_id),
+                'original_message': LegacyMessageSerializer(original).data,
+                'total_generations': len(chain_messages),
+                'latest_generation': max(msg.generation for msg in chain_messages),
+                'created_at': original.created_at.isoformat()
+            })
+        
+        return Response({
+            'chains': chains,
+            'total_chains': len(chains)
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

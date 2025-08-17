@@ -25,4 +25,10 @@ urlpatterns = [
     path('api/jobs/<str:job_id>/status/', api_views.job_status, name='api_job_status'),
     path('api/messages/send-test/', api_views.send_test_message, name='api_send_test'),
     path('api/messages/schedule/', api_views.schedule_message_api, name='api_schedule_message'),
+    
+    # Chain functionality endpoints
+    path('api/message/<uuid:token>/', api_views.view_message_by_token, name='view_message_by_token'),
+    path('api/message/<uuid:token>/extend/', api_views.extend_chain, name='extend_chain'),
+    path('api/message/<uuid:token>/chain/', api_views.view_full_chain, name='view_full_chain'),
+    path('api/chains/', api_views.user_chains, name='user_chains'),
 ]
