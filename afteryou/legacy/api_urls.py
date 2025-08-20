@@ -27,8 +27,8 @@ urlpatterns = [
     path('api/messages/schedule/', api_views.schedule_message_api, name='api_schedule_message'),
     
     # Chain functionality endpoints
-    path('api/message/<uuid:token>/', api_views.view_message_by_token, name='view_message_by_token'),
-    path('api/message/<uuid:token>/extend/', api_views.extend_chain, name='extend_chain'),
-    path('api/message/<uuid:token>/chain/', api_views.view_full_chain, name='view_full_chain'),
-    path('api/chains/', api_views.user_chains, name='user_chains'),
+    path('api/legacy/chain/<uuid:token>/', api_views.view_message_by_token, name='view_message_by_token'),
+    path('api/legacy/chain/<uuid:token>/extend/', api_views.extend_chain, name='extend_chain'),
+    path('api/legacy/chain/<uuid:token>/full/', api_views.view_full_chain, name='view_full_chain'),
+    path('api/legacy/chains/', api_views.user_chains, name='user_chains'),
 ]

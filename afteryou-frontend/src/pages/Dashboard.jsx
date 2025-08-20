@@ -198,6 +198,13 @@ const Dashboard = () => {
       color: theme.palette.secondary.main,
       action: () => navigate('/messages'),
     },
+    {
+      title: 'Legacy Chains',
+      description: 'View your chain messages',
+      icon: <TrendingUp />,
+      color: theme.palette.info.main,
+      action: () => navigate('/chains'),
+    },
   ];
 
   return (
