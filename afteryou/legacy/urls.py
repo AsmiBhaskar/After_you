@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (
     dashboard, create_message, message_detail, delete_message, 
-    schedule_message_view, send_message_now, test_email, create_legacy
+    schedule_message_view, send_message_now, test_email, create_legacy,
+    chain_message_view
 )
 from .digital_locker_views import (
     DigitalLockerView, CredentialView, InheritanceAccessView, trigger_inheritance
@@ -18,6 +19,9 @@ urlpatterns = [
     path('message/<str:message_id>/send-now/', send_message_now, name='send_message_now'),
     path('test-email/', test_email, name='test_email'),
     path('test-legacy/', create_legacy, name='test_legacy'),  # Keep for testing
+    
+    # Chain functionality URLs
+    path('legacy/message/<uuid:token>/', chain_message_view, name='chain_message_view'),
     
     # Digital Locker URLs
     path('api/digital-locker/', DigitalLockerView.as_view(), name='digital_locker'),

@@ -28,6 +28,7 @@ import {
   AccessTime as TimeIcon,
   Person as PersonIcon,
   Refresh as RefreshIcon,
+  Link as LinkIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { messagesAPI, handleAPIError } from '../services/api';
@@ -367,6 +368,19 @@ const MessageDetail = () => {
                     >
                       Delete Message
                     </Button>
+
+                    {/* Chain Message Link */}
+                    {message.recipient_access_token && (
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        startIcon={<LinkIcon />}
+                        onClick={() => window.open(`/chain/${message.recipient_access_token}`, '_blank')}
+                        sx={{ mt: 1 }}
+                      >
+                        View Chain Link
+                      </Button>
+                    )}
                   </Box>
 
                   {/* Status Information */}

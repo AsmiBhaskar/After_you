@@ -23,6 +23,7 @@ import {
 import {
   Dashboard as DashboardIcon,
   Message as MessageIcon,
+  Timeline as TimelineIcon,
   Add as AddIcon,
   Menu as MenuIcon,
   AccountCircle,
@@ -76,6 +77,12 @@ const Layout = () => {
       icon: <MessageIcon />,
       path: '/messages',
       description: 'All Messages'
+    },
+    {
+      text: 'Legacy Chains',
+      icon: <TimelineIcon />,
+      path: '/chains',
+      description: 'Chain Messages'
     },
     {
       text: 'Create Message',

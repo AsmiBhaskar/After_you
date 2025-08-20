@@ -3,6 +3,8 @@
 # Remove these after frontend migration is complete.
 
 from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
+from .models import LegacyMessage
 
 def deprecated_view(*args, **kwargs):
     raise NotImplementedError("This view is deprecated. Use the DRF API endpoints instead.")
@@ -22,3 +24,11 @@ delete_message = deprecated_view
 test_email = deprecated_view
 
 create_legacy = deprecated_view
+
+# NEW CHAIN VIEWS
+
+def chain_message_view(request, token):
+    """Serve the chain message viewing page"""
+    return render(request, 'legacy/chain_message_view.html', {
+        'token': token
+    })

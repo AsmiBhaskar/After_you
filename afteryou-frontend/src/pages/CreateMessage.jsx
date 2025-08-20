@@ -16,6 +16,7 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  Checkbox,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -39,6 +40,7 @@ const CreateMessage = () => {
     content: '',
     recipient_email: '',
     delivery_date: dayjs().add(1, 'day'),
+    is_chain_enabled: false,
   });
   
   const [loading, setLoading] = useState(false);
@@ -244,6 +246,30 @@ const CreateMessage = () => {
                           helperText={validationErrors.content || `${wordCount} words`}
                           placeholder="Write your legacy message here... What would you like to tell the future?"
                         />
+                      </Grid>
+
+                      {/* Chain Message Option */}
+                      <Grid item xs={12}>
+                        <FormControl component="fieldset">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Checkbox
+                              name="is_chain_enabled"
+                              checked={formData.is_chain_enabled}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                is_chain_enabled: e.target.checked
+                              }))}
+                            />
+                            <Box sx={{ ml: 1 }}>
+                              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                Enable Legacy Chain
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Allow recipients to extend this message and pass it forward to future generations
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </FormControl>
                       </Grid>
                     </Grid>
                   </Box>

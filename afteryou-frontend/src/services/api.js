@@ -152,6 +152,29 @@ export const messagesAPI = {
   },
 };
 
+// Chain Messages API
+export const chainAPI = {
+  viewChainMessage: async (token) => {
+    const response = await api.get(`/api/legacy/chain/${token}/`);
+    return response.data;
+  },
+
+  extendChain: async (token, messageData) => {
+    const response = await api.post(`/api/legacy/chain/${token}/extend/`, messageData);
+    return response.data;
+  },
+
+  getFullChain: async (token) => {
+    const response = await api.get(`/api/legacy/chain/${token}/full/`);
+    return response.data;
+  },
+
+  getUserChains: async () => {
+    const response = await api.get('/api/legacy/chains/');
+    return response.data;
+  },
+};
+
 // Dashboard API
 export const dashboardAPI = {
   getStats: async () => {

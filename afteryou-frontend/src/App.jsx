@@ -11,6 +11,8 @@ import MessageList from './pages/MessageList';
 import CreateMessage from './pages/CreateMessage';
 import MessageDetail from './pages/MessageDetail';
 import EditMessage from './pages/EditMessage';
+import ChainMessageView from './pages/ChainMessageView';
+import UserChains from './pages/UserChains';
 import SystemMonitoring from './pages/SystemMonitoring';
 import UserSettings from './pages/UserSettings';
 import DigitalLocker from './pages/DigitalLocker';
@@ -76,6 +78,7 @@ function AppRoutes() {
   <Route path="messages/create" element={<CreateMessage />} />
   <Route path="messages/:id" element={<MessageDetail />} />
   <Route path="messages/:id/edit" element={<EditMessage />} />
+        <Route path="chains" element={<UserChains />} />
         <Route path="system" element={<SystemMonitoring />} />
         <Route path="settings" element={<UserSettings />} />
         <Route path="digital-locker" element={<DigitalLocker />} />
@@ -85,6 +88,12 @@ function AppRoutes() {
       <Route 
         path="/inheritance/:token" 
         element={<InheritanceAccess />} 
+      />
+
+      {/* Public chain message access route */}
+      <Route 
+        path="/chain/:token" 
+        element={<ChainMessageView />} 
       />
 
       {/* Catch all route */}
