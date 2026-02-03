@@ -1,118 +1,102 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
-import afterYouTheme from './theme';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import Dashboard from './pages/Dashboard';
-import MessageList from './pages/MessageList';
-import CreateMessage from './pages/CreateMessage';
-import MessageDetail from './pages/MessageDetail';
-import EditMessage from './pages/EditMessage';
-import ChainMessageView from './pages/ChainMessageView';
-import UserChains from './pages/UserChains';
-import SystemMonitoring from './pages/SystemMonitoring';
-import UserSettings from './pages/UserSettings';
-import DigitalLocker from './pages/DigitalLocker';
-import InheritanceAccess from './pages/InheritanceAccess';
-import Layout from './components/Layout/Layout';
-import LoadingScreen from './components/Common/LoadingScreen';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import LoadingScreen from "./components/Common/LoadingScreen";
 
-// Protected Route component
+// Pages
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import Dashboard from "./pages/Dashboard";
+import MessageList from "./pages/messages/MessageList";
+import CreateMessage from "./pages/messages/CreateMessage";
+import MessageDetail from "./pages/messages/MessageDetail";
+import EditMessage from "./pages/messages/EditMessage";
+import ChainMessageView from "./pages/chains/ChainMessageView";
+import UserChains from "./pages/chains/UserChains";
+import SystemMonitoring from "./pages/SystemMonitoring";
+import UserSettings from "./pages/settings/UserSettings";
+import DigitalLocker from "./pages/locker/DigitalLocker";
+import InheritanceAccess from "./pages/InheritanceAccess";
+import AuthenticatedLayout from "./components/layout/AuthenticatedLayout";
+
+// Protected Route
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  if (isLoading) return <LoadingScreen />;
+  return isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
-// Public Route component (redirect if authenticated)
+// Public Route
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
+  if (isLoading) return <LoadingScreen />;
   return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
 };
 
-function AppRoutes() {
+export default function App() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <RegisterPage />
-          </PublicRoute>
-        }
-      />
+    <AuthProvider>
+      <Toaster />
+      <Sonner />
+      <Router>
+        <Routes>
+          {/* Public Homepage */}
+          <Route path="/" element={<HomePage />} />
 
-      {/* Protected routes with layout */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-  <Route path="messages" element={<MessageList />} />
-  <Route path="messages/create" element={<CreateMessage />} />
-  <Route path="messages/:id" element={<MessageDetail />} />
-  <Route path="messages/:id/edit" element={<EditMessage />} />
-        <Route path="chains" element={<UserChains />} />
-        <Route path="system" element={<SystemMonitoring />} />
-        <Route path="settings" element={<UserSettings />} />
-        <Route path="digital-locker" element={<DigitalLocker />} />
-      </Route>
+          {/* Public auth */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            }
+          />
 
-      {/* Public inheritance access route */}
-      <Route 
-        path="/inheritance/:token" 
-        element={<InheritanceAccess />} 
-      />
+          {/* Protected routes with Navigation/Layout */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="messages" element={<MessageList />} />
+            <Route path="messages/create" element={<CreateMessage />} />
+            <Route path="messages/:id" element={<MessageDetail />} />
+            <Route path="messages/:id/edit" element={<EditMessage />} />
+            <Route path="chains" element={<UserChains />} />
+            <Route path="system" element={<SystemMonitoring />} />
+            <Route path="settings" element={<UserSettings />} />
+            <Route path="digital-locker" element={<DigitalLocker />} />
+          </Route>
 
-      {/* Public chain message access route */}
-      <Route 
-        path="/chain/:token" 
-        element={<ChainMessageView />} 
-      />
+          {/* Public token-based routes */}
+          <Route path="/inheritance/:token" element={<InheritanceAccess />} />
+          <Route path="/chain/:token" element={<ChainMessageView />} />
 
-      {/* Catch all route */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
-
-function App() {
-  return (
-    <ThemeProvider theme={afterYouTheme}>
-      <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
-  );
-}
-
-export default App;

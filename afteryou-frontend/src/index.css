@@ -1,68 +1,415 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* AfterYou Design System
+   "Our words should outlive our silence."
+   
+   A poetic, emotional, legacy-driven experience.
+   Design as a whisper, not a dashboard.
+*/
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* Core palette - warm parchment and aged ink */
+    --background: 40 33% 98%;
+    --foreground: 30 10% 20%;
+
+    /* Cards feel like aged paper */
+    --card: 40 30% 97%;
+    --card-foreground: 30 10% 20%;
+
+    /* Popovers - slightly elevated paper */
+    --popover: 40 35% 99%;
+    --popover-foreground: 30 10% 20%;
+
+    /* Primary - muted sage (calm, timeless) */
+    --primary: 150 15% 40%;
+    --primary-foreground: 40 33% 98%;
+
+    /* Secondary - soft warm gray */
+    --secondary: 35 10% 92%;
+    --secondary-foreground: 30 10% 25%;
+
+    /* Muted - like faded ink */
+    --muted: 35 8% 90%;
+    --muted-foreground: 30 8% 45%;
+
+    /* Accent - warm amber glow (candlelight) */
+    --accent: 35 60% 92%;
+    --accent-foreground: 30 40% 25%;
+
+    /* Status colors - gentle, not alarming */
+    --destructive: 0 40% 55%;
+    --destructive-foreground: 40 33% 98%;
+
+    /* Success - gentle sage */
+    --success: 145 25% 45%;
+    --success-foreground: 40 33% 98%;
+
+    /* Warning - soft amber */
+    --warning: 40 60% 55%;
+    --warning-foreground: 30 40% 20%;
+
+    /* Borders - almost invisible, like aged paper edges */
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 150 15% 50%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - quiet navigation */
+    --sidebar-background: 40 25% 96%;
+    --sidebar-foreground: 30 10% 30%;
+    --sidebar-primary: 150 15% 40%;
+    --sidebar-primary-foreground: 40 33% 98%;
+    --sidebar-accent: 35 20% 93%;
+    --sidebar-accent-foreground: 30 10% 25%;
+    --sidebar-border: 35 12% 90%;
+    --sidebar-ring: 150 15% 50%;
+
+    /* Custom tokens for AfterYou */
+    --letter-shadow: 0 4px 20px hsla(30, 20%, 20%, 0.08);
+    --envelope-shadow: 0 8px 30px hsla(30, 20%, 20%, 0.12);
+    --glow-amber: 0 0 40px hsla(35, 60%, 60%, 0.15);
+    --glow-sage: 0 0 40px hsla(150, 20%, 50%, 0.1);
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    /* Dark mode - like writing by candlelight */
+    --background: 30 15% 8%;
+    --foreground: 35 20% 90%;
+
+    --card: 30 12% 11%;
+    --card-foreground: 35 20% 90%;
+
+    --popover: 30 12% 10%;
+    --popover-foreground: 35 20% 90%;
+
+    --primary: 150 20% 55%;
+    --primary-foreground: 30 15% 8%;
+
+    --secondary: 30 10% 15%;
+    --secondary-foreground: 35 15% 85%;
+
+    --muted: 30 10% 18%;
+    --muted-foreground: 35 10% 55%;
+
+    --accent: 35 30% 18%;
+    --accent-foreground: 35 40% 85%;
+
+    --destructive: 0 35% 45%;
+    --destructive-foreground: 35 20% 95%;
+
+    --success: 145 25% 40%;
+    --success-foreground: 35 20% 95%;
+
+    --warning: 40 50% 45%;
+    --warning-foreground: 35 20% 95%;
+
+    --border: 30 10% 18%;
+    --input: 30 10% 18%;
+    --ring: 150 20% 50%;
+
+    --sidebar-background: 30 12% 10%;
+    --sidebar-foreground: 35 15% 85%;
+    --sidebar-primary: 150 20% 55%;
+    --sidebar-primary-foreground: 30 15% 8%;
+    --sidebar-accent: 30 10% 15%;
+    --sidebar-accent-foreground: 35 15% 85%;
+    --sidebar-border: 30 10% 16%;
+    --sidebar-ring: 150 20% 50%;
+
+    --letter-shadow: 0 4px 20px hsla(30, 20%, 5%, 0.3);
+    --envelope-shadow: 0 8px 30px hsla(30, 20%, 5%, 0.4);
+    --glow-amber: 0 0 40px hsla(35, 60%, 50%, 0.1);
+    --glow-sage: 0 0 40px hsla(150, 20%, 40%, 0.08);
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
+  }
+
+  /* Serif typography for headings - like handwritten letters */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+  }
+
+  /* Selection color - soft amber highlight */
+  ::selection {
+    background-color: hsl(35 60% 85%);
+    color: hsl(30 40% 20%);
+  }
+}
+
+@layer components {
+  /* Letter-like cards */
+  .letter-card {
+    @apply bg-card rounded-xl p-6 transition-all duration-500 ease-out;
+    box-shadow: var(--letter-shadow);
+  }
+
+  .letter-card:hover {
+    box-shadow: var(--envelope-shadow);
+    transform: translateY(-2px);
+  }
+
+  /* Envelope styling */
+  .envelope {
+    @apply bg-card rounded-2xl overflow-hidden;
+    box-shadow: var(--envelope-shadow);
+  }
+
+  /* Time capsule effect */
+  .time-capsule {
+    @apply relative bg-gradient-to-b from-card to-secondary/30 rounded-2xl p-8;
+    box-shadow: var(--envelope-shadow);
+  }
+
+  .time-capsule::before {
+    content: '';
+    @apply absolute inset-0 rounded-2xl opacity-50;
+    background: radial-gradient(ellipse at top, hsl(35 60% 95% / 0.5), transparent 70%);
+  }
+
+  /* Sealed letter border */
+  .sealed-letter {
+    @apply relative;
+  }
+
+  .sealed-letter::after {
+    content: '';
+    @apply absolute -inset-px rounded-xl pointer-events-none;
+    background: linear-gradient(135deg, hsl(35 40% 85%) 0%, transparent 50%, hsl(35 40% 85%) 100%);
+    opacity: 0.5;
+  }
+
+  /* Faded ink text effect */
+  .faded-ink {
+    @apply text-muted-foreground;
+    text-shadow: 0 1px 2px hsl(30 10% 20% / 0.05);
+  }
+
+  /* Candlelight glow effect */
+  .candlelight {
+    box-shadow: var(--glow-amber);
+  }
+
+  /* Sage glow effect */
+  .sage-glow {
+    box-shadow: var(--glow-sage);
+  }
+
+  /* Quiet navigation */
+  .nav-quiet {
+    @apply text-muted-foreground transition-colors duration-300;
+  }
+
+  .nav-quiet:hover {
+    @apply text-foreground;
+  }
+
+  /* Status badges - gentle, not alarming */
+  .status-pending {
+    @apply bg-warning/20 text-warning-foreground border border-warning/30;
+  }
+
+  .status-sent {
+    @apply bg-success/20 text-success border border-success/30;
+  }
+
+  .status-failed {
+    @apply bg-destructive/10 text-destructive border border-destructive/20;
+  }
+
+  .status-scheduled {
+    @apply bg-primary/10 text-primary border border-primary/20;
+  }
+}
+
+@layer utilities {
+  /* Breathing animation - slow, meditative */
+  .animate-breathe {
+    animation: breathe 6s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+  }
+
+  /* Gentle fade in */
+  .animate-fade-in-slow {
+    animation: fadeInSlow 0.8s ease-out forwards;
+  }
+
+  @keyframes fadeInSlow {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Staggered children animation */
+  .animate-stagger > * {
+    opacity: 0;
+    animation: staggerFade 0.6s ease-out forwards;
+  }
+
+  .animate-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+  .animate-stagger > *:nth-child(2) { animation-delay: 0.2s; }
+  .animate-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+  .animate-stagger > *:nth-child(4) { animation-delay: 0.4s; }
+  .animate-stagger > *:nth-child(5) { animation-delay: 0.5s; }
+  .animate-stagger > *:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes staggerFade {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Float animation - like a letter drifting */
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-8px) rotate(0.5deg);
+    }
+    75% {
+      transform: translateY(4px) rotate(-0.5deg);
+    }
+  }
+
+  /* Pulse glow - like candlelight */
+  .animate-glow {
+    animation: glow 4s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsla(35, 60%, 60%, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 40px hsla(35, 60%, 60%, 0.2);
+    }
+  }
+
+  /* Reveal animation - like unsealing a letter */
+  .animate-reveal {
+    animation: reveal 1s ease-out forwards;
+  }
+
+  @keyframes reveal {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* Typewriter effect */
+  .animate-typewriter {
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typewriter 3s steps(40) forwards;
+  }
+
+  @keyframes typewriter {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+
+  /* Hover lift - gentle */
+  .hover-lift {
+    @apply transition-all duration-500 ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--envelope-shadow);
+  }
+
+  /* Focus ring - sage colored, soft */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar - subtle */
+  .scrollbar-subtle {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted));
+    border-radius: 3px;
   }
 }
