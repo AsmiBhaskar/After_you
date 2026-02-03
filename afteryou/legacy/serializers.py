@@ -79,3 +79,18 @@ class LegacyMessageCreateSerializer(serializers.Serializer):
         )
         message.save()
         return message
+
+    def to_representation(self, instance):
+        """Return the full message data including ID after creation"""
+        return {
+            'id': str(instance.id),
+            'title': instance.title,
+            'content': instance.content,
+            'recipient_email': instance.recipient_email,
+            'delivery_date': instance.delivery_date.isoformat() if instance.delivery_date else None,
+            'status': instance.status,
+            'created_at': instance.created_at.isoformat() if instance.created_at else None,
+            'chain_id': str(instance.chain_id) if instance.chain_id else None,
+            'generation': getattr(instance, 'generation', 1),
+            'recipient_access_token': str(instance.recipient_access_token) if instance.recipient_access_token else None,
+        }

@@ -110,11 +110,20 @@ DATABASES = {
     }
 }
 
-connect(
-    db="afteryou_db",
-    host="localhost",
-    port=27017
-)
+MONGODB_URI = config('MONGODB_URI', default='mongodb://localhost:27017/afteryou_db')
+MONGODB_DB_NAME = config('MONGODB_DB_NAME', default='afteryou_db')
+
+# Connect to MongoDB (local or Atlas based on URI)
+try:
+    connect(
+        db=MONGODB_DB_NAME,
+        host=MONGODB_URI,
+        alias='default',
+        serverSelectionTimeoutMS=5000  # 5 second timeout
+    )
+    print(f"✓ Connected to MongoDB: {MONGODB_DB_NAME}")
+except Exception as e:
+    print(f"✗ MongoDB connection error: {str(e)}")
 
 
 # Password validation
@@ -275,6 +284,8 @@ RQ_QUEUES = {
         },
     }
 }
+
+RQ_SHOW_ADMIN_LINK = True
 
 # Legacy Message Settings
 LEGACY_MESSAGE_SETTINGS = {

@@ -209,17 +209,27 @@ const UserChains = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<ViewIcon />}
-                        onClick={() => window.open(`/chain/${chain.latest_token}`, '_blank')}
+                        onClick={() => {
+                          const token = chain.latest_token || chain.original_message?.recipient_access_token;
+                          if (token) {
+                            window.open(`/chain/${token}`, '_blank');
+                          }
+                        }}
+                        disabled={!chain.latest_token && !chain.original_message?.recipient_access_token}
                       >
                         View Chain
                       </Button>
                       <IconButton
                         size="small"
                         onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/chain/${chain.latest_token}`);
+                          const token = chain.latest_token || chain.original_message?.recipient_access_token;
+                          if (token) {
+                            navigator.clipboard.writeText(`${window.location.origin}/chain/${token}`);
+                          }
                           // You might want to show a toast notification here
                         }}
                         title="Copy chain link"
+                        disabled={!chain.latest_token && !chain.original_message?.recipient_access_token}
                       >
                         <LinkIcon />
                       </IconButton>

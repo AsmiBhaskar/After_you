@@ -38,8 +38,8 @@ const MessageDetail = () => {
   const { id } = useParams();
     const navigate = useNavigate();
   
-  // Defensive: Only allow valid MongoDB ObjectId (24 hex chars)
-  const isValidId = id && typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
+  // Allow valid MongoDB ObjectId (24 hex chars) or any non-empty string ID
+  const isValidId = id && typeof id === 'string' && id.length > 0 && id !== 'undefined' && id !== 'null';
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);

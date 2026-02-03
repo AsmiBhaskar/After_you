@@ -274,7 +274,7 @@ const MessageList = () => {
   }, []);
 
   const handleDeleteMessage = async (messageId) => {
-    if (!messageId || typeof messageId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(messageId)) {
+    if (!messageId || typeof messageId !== 'string' || messageId === 'undefined') {
       setError('Invalid message ID.');
       return;
     }
@@ -288,7 +288,7 @@ const MessageList = () => {
   };
 
   const handleSendMessage = async (messageId) => {
-    if (!messageId || typeof messageId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(messageId)) {
+    if (!messageId || typeof messageId !== 'string' || messageId === 'undefined') {
       setError('Invalid message ID.');
       return;
     }
@@ -303,7 +303,7 @@ const MessageList = () => {
   };
 
   const handleScheduleMessage = async (messageId) => {
-    if (!messageId || typeof messageId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(messageId)) {
+    if (!messageId || typeof messageId !== 'string' || messageId === 'undefined') {
       setError('Invalid message ID.');
       return;
     }

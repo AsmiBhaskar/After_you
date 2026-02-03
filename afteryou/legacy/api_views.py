@@ -435,11 +435,15 @@ def user_chains(request):
                 chain_id=original.chain_id
             ).order_by('generation')
             
+            # Get the latest message in the chain for the latest_token
+            latest_message = chain_messages.order_by('-generation').first()
+            
             chains.append({
                 'chain_id': str(original.chain_id),
                 'original_message': LegacyMessageSerializer(original).data,
                 'total_generations': len(chain_messages),
                 'latest_generation': max(msg.generation for msg in chain_messages),
+                'latest_token': str(latest_message.recipient_access_token) if latest_message and latest_message.recipient_access_token else str(original.recipient_access_token),
                 'created_at': original.created_at.isoformat()
             })
         

@@ -54,8 +54,11 @@ const ChainMessageView = () => {
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    if (token) {
+    if (token && token !== 'undefined') {
       fetchMessage();
+    } else {
+      setError('Invalid chain token. Please check the URL.');
+      setLoading(false);
     }
   }, [token]);
 
