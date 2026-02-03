@@ -1,6 +1,3 @@
-# Frontend URL for email links and cross-origin use
-import os
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 """
 Django settings for afteryou project.
 
@@ -17,6 +14,9 @@ from pathlib import Path
 from mongoengine import connect
 from datetime import timedelta
 from decouple import config
+from urllib.parse import urlparse
+import ssl
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,13 +26,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z1(+*-w2x1#2df)!xr&ukg^r*9s&$y+(9ye+hl+#ttjpk#p8l8'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-z1(+*-w2x1#2df)!xr&ukg^r*9s&$y+(9ye+hl+#ttjpk#p8l8')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# Frontend URL for email links and cross-origin use
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+
+# Redis URL
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
 
 # Application definition
 
@@ -43,8 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_rq',  # Django-RQ for background tasks
-    'django_celery_beat',  # Celery periodic tasks
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -188,44 +192,41 @@ SIMPLE_JWT = {
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite default port
-    "http://localhost:5174",  # Vite alternative port 1
-    "http://localhost:5175",  # Vite alternative port 2
-    "http://localhost:5176",  # Vite alternative port 3
-    "http://localhost:5177",  # Vite alternative port 4
-    "http://localhost:5178",  # Vite alternative port 5
-    "http://localhost:5179",  # Vite alternative port 6
-    "http://localhost:5180",  # Vite alternative port 7
-    "http://127.0.0.1:5173",  # IPv4 localhost equivalents
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:5175",
-    "http://127.0.0.1:5176",
-    "http://127.0.0.1:5177",
-    "http://127.0.0.1:5178",
-    "http://127.0.0.1:5179",
-    "http://127.0.0.1:5180",
+    origin.rstrip('/') for origin in config(
+        'CORS_ALLOWED_ORIGINS',
+        default='http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173'
+    ).split(',')
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    origin.rstrip('/') for origin in config(
+        'CSRF_TRUSTED_ORIGINS',
+        default='http://localhost:5173,http://127.0.0.1:5173'
+    ).split(',')
 ]
-
 # WebSocket Configuration
 ASGI_APPLICATION = 'afteryou.asgi.application'
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [REDIS_URL],
         },
     },
 }
-
 # Login URLs
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -248,43 +249,59 @@ DEFAULT_FROM_EMAIL = 'AfterYou Legacy <noreply@afteryou.com>'
 EMAIL_SUBJECT_PREFIX = '[AfterYou] '
 
 # Django-RQ Configuration
+# RQ_QUEUES = {
+#     'default': {
+#         'HOST': '127.0.0.1',
+#         'PORT': 6379,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 360,
+#         'CONNECTION_KWARGS': {
+#             'health_check_interval': 30,
+#             'socket_connect_timeout': 10,
+#             'socket_timeout': 10,
+#             'retry_on_timeout': True,
+#             'max_connections': 50,
+#         },
+#         'CONNECTION_POOL_KWARGS': {
+#             'max_connections': 50,
+#             'retry_on_timeout': True,
+#         },
+#     },
+#     'email': {
+#         'HOST': '127.0.0.1',
+#         'PORT': 6379,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 360,
+#         'CONNECTION_KWARGS': {
+#             'health_check_interval': 30,
+#             'socket_connect_timeout': 10,
+#             'socket_timeout': 10,
+#             'retry_on_timeout': True,
+#             'max_connections': 50,
+#         },
+#         'CONNECTION_POOL_KWARGS': {
+#             'max_connections': 50,
+#             'retry_on_timeout': True,
+#         },
+#     }
+# }
+
+
+
 RQ_QUEUES = {
     'default': {
-        'HOST': '127.0.0.1',
-        'PORT': 6379,
-        'DB': 0,
+        'URL': REDIS_URL,
         'DEFAULT_TIMEOUT': 360,
-        'CONNECTION_KWARGS': {
-            'health_check_interval': 30,
-            'socket_connect_timeout': 10,
-            'socket_timeout': 10,
-            'retry_on_timeout': True,
-            'max_connections': 50,
-        },
-        'CONNECTION_POOL_KWARGS': {
-            'max_connections': 50,
-            'retry_on_timeout': True,
-        },
+        'SSL': REDIS_URL.startswith('rediss://'),
+        'SSL_CERT_REQS': None,
     },
     'email': {
-        'HOST': '127.0.0.1',
-        'PORT': 6379,
-        'DB': 0,
+        'URL': REDIS_URL,
         'DEFAULT_TIMEOUT': 360,
-        'CONNECTION_KWARGS': {
-            'health_check_interval': 30,
-            'socket_connect_timeout': 10,
-            'socket_timeout': 10,
-            'retry_on_timeout': True,
-            'max_connections': 50,
-        },
-        'CONNECTION_POOL_KWARGS': {
-            'max_connections': 50,
-            'retry_on_timeout': True,
-        },
+        'SSL': REDIS_URL.startswith('rediss://'),
+        'SSL_CERT_REQS': None,
     }
 }
-
 RQ_SHOW_ADMIN_LINK = True
 
 # Legacy Message Settings
@@ -294,28 +311,28 @@ LEGACY_MESSAGE_SETTINGS = {
     'RETRY_DELAY': 3600,  # 1 hour between retries
 }
 
-# Celery Configuration
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
 
-# Celery Beat (Periodic Tasks) Configuration
-try:
-    from celery.schedules import crontab
-    CELERY_BEAT_SCHEDULE = {
-        'check-dead-mans-switch': {
-            'task': 'accounts.tasks.check_dead_mans_switch',
-            'schedule': crontab(hour=9, minute=0),  # Run daily at 9 AM
-        },
-    }
-except ImportError:
-    # Fallback to interval schedule if crontab is not available
-    CELERY_BEAT_SCHEDULE = {
-        'check-dead-mans-switch': {
-            'task': 'accounts.tasks.check_dead_mans_switch',
-            'schedule': 60.0 * 60.0 * 24.0,  # Run daily (86400 seconds)
-        },
-    }
+
+# QStash Configuration (Serverless background tasks)
+QSTASH_TOKEN = config('QSTASH_TOKEN', default='')
+QSTASH_CURRENT_SIGNING_KEY = config('QSTASH_CURRENT_SIGNING_KEY', default='')
+QSTASH_NEXT_SIGNING_KEY = config('QSTASH_NEXT_SIGNING_KEY', default='')
+BACKEND_URL = config('BACKEND_URL', default='http://localhost:8000')
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
